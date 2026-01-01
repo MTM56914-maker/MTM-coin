@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>MTM Coin</title>
+    <style>
+        body { background: radial-gradient(circle, #2c3e50, #000); color: white; text-align: center; font-family: 'Arial', sans-serif; overflow: hidden; height: 100vh; margin: 0; display: flex; flex-direction: column; justify-content: center; }
+        .score-container { font-size: 3rem; font-weight: bold; margin-bottom: 20px; color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+        .coin-btn { background: none; border: none; outline: none; cursor: pointer; transition: transform 0.05s; }
+        .coin-btn:active { transform: scale(0.9); }
+        .coin-btn img { width: 250px; filter: drop-shadow(0 0 20px #f1c40f); }
+        .status { margin-top: 20px; color: #bdc3c7; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="score-container" id="score">0</div>
+    
+    <button class="coin-btn" id="coinBtn">
+        <img src="https://cdn-icons-png.flaticon.com/512/5402/5402377.png" alt="MTM Coin">
+    </button>
+
+    <div class="status">انقر لجمع العملات!</div>
+
+    <script>
+        let score = localStorage.getItem('mtm_score') || 0;
+        const scoreElement = document.getElementById('score');
+        scoreElement.innerText = score;
+
+        document.getElementById('coinBtn').addEventListener('click', (e) => {
+            score++;
+            scoreElement.innerText = score;
+            localStorage.setItem('mtm_score', score);
+            
+            // اهتزاز بسيط للموبايل عند النقر
+            if (navigator.vibrate) navigator.vibrate(10);
+        });
+    </script>
+</body>
+</html>
