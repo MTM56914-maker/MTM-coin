@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin</title>
+    <title>MTM Coin - Final</title>
     <style>
-        body { 
-            background: radial-gradient(circle, #1e272e, #000); 
-            color: white; text-align: center; font-family: sans-serif; 
-            height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; 
-        }
+        body { background: radial-gradient(circle, #1e272e, #000); color: white; text-align: center; font-family: sans-serif; height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; }
         .page { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .active { display: flex; }
         .score-box { font-size: 3.5rem; color: #f1c40f; font-weight: bold; margin-bottom: 10px; }
-        .coin-img { width: 220px; height: 220px; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
-        .coin-img:active { transform: scale(0.92); }
+        /* تصميم العملة الجديد لضمان الظهور */
+        .coin-btn { width: 200px; height: 200px; background: #f1c40f; border-radius: 50%; border: 8px solid #d4af37; box-shadow: 0 0 30px rgba(241, 196, 15, 0.5); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 5rem; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; margin: 20px auto; }
+        .coin-btn:active { transform: scale(0.92); }
         .nav-bar { background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #333; }
         .nav-item { color: #888; cursor: pointer; font-size: 0.8rem; text-align: center; }
         .nav-item.active-nav { color: #f1c40f; font-weight: bold; }
@@ -23,15 +20,15 @@
 <body>
     <div id="homePage" class="page active">
         <div class="score-box" id="score">0</div>
-        <img src="https://telegra.ph/file/ed1732e6005d59f77f985.png" class="coin-img" id="coinBtn">
+        <div class="coin-btn" id="coinBtn">🪙</div>
         <div style="width: 100%; margin-top: 20px;">
             <div style="margin-bottom: 5px;">⚡ الطاقة: <span id="energyVal">1000</span> / 1000</div>
             <center><div style="width: 80%; background: #333; height: 10px; border-radius: 10px; overflow: hidden;"><div id="energyBar" style="background: #f1c40f; height: 100%; width: 100%;"></div></div></center>
         </div>
     </div>
 
-    <div id="tasksPage" class="page"><h2>المهام 🏆</h2></div>
-    <div id="friendsPage" class="page"><h2>الأصدقاء 👥</h2></div>
+    <div id="tasksPage" class="page"><h2>المهام 🏆</h2><p>انتظر المهام الجديدة قريباً!</p></div>
+    <div id="friendsPage" class="page"><h2>الأصدقاء 👥</h2><p>ادعُ أصدقاءك واربح!</p></div>
 
     <div class="nav-bar">
         <div class="nav-item active-nav" id="navHome" onclick="showPage('home')">🏠<br>الرئيسية</div>
@@ -55,7 +52,7 @@
             document.getElementById('nav'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active-nav');
         }
         document.getElementById('coinBtn').addEventListener('click', () => {
-            if (energy > 0) { score++; energy--; localStorage.setItem('mtm_score', score); localStorage.setItem('mtm_energy', energy); updateUI(); }
+            if (energy > 0) { score++; energy--; localStorage.setItem('mtm_score', score); localStorage.setItem('mtm_energy', energy); updateUI(); if(navigator.vibrate) navigator.vibrate(10); }
         });
         setInterval(() => { if (energy < maxEnergy) { energy++; updateUI(); } }, 1000);
         updateUI();
