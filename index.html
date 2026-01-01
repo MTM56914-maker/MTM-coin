@@ -3,127 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin - Ultimate</title>
+    <title>MTM Coin</title>
     <style>
-        body { background: #000; color: white; text-align: center; font-family: 'Cairo', sans-serif; height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; }
+        body { background: #000; color: white; text-align: center; font-family: sans-serif; height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; }
         .page { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .active { display: flex; }
-        
-        /* الرصيد */
-        .score-box { font-size: 3.5rem; color: #f1c40f; font-weight: bold; margin-bottom: 5px; text-shadow: 0 0 20px rgba(241, 196, 15, 0.3); }
-        
-        /* العملة الاحترافية */
+        .score-box { font-size: 3.5rem; color: #f1c40f; font-weight: bold; margin-bottom: 10px; }
         .coin-img { width: 240px; height: 240px; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 0 15px #f1c40f); }
-        .coin-img:active { transform: scale(0.94); }
-
-        /* البطاقات والمهام */
-        .card { background: #1e272e; width: 90%; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
-        .task-info { text-align: right; }
-        .task-reward { color: #f1c40f; font-weight: bold; font-size: 0.9rem; }
-        .btn-action { background: #f1c40f; color: black; border: none; padding: 8px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-
-        /* شريط الطاقة */
-        .energy-section { width: 85%; margin-top: 25px; }
-        .energy-bar-bg { width: 100%; background: #222; height: 12px; border-radius: 10px; overflow: hidden; border: 1px solid #444; }
-        .energy-bar-fill { background: linear-gradient(90deg, #f1c40f, #ff7f50); height: 100%; width: 100%; transition: width 0.2s; }
-
-        /* شريط التنقل */
-        .nav-bar { background: #0a0a0a; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222; padding-bottom: 25px; }
-        .nav-item { color: #555; cursor: pointer; font-size: 0.85rem; transition: 0.3s; }
+        .coin-img:active { transform: scale(0.92); }
+        .card { background: #1a1a1a; width: 90%; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .btn-action { background: #f1c40f; color: black; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .energy-container { width: 85%; margin-top: 30px; }
+        .energy-bar { background: #222; height: 12px; border-radius: 10px; overflow: hidden; }
+        .energy-fill { background: #f1c40f; height: 100%; width: 100%; transition: width 0.2s; }
+        .nav-bar { background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; padding-bottom: 25px; }
+        .nav-item { color: #888; cursor: pointer; font-size: 0.8rem; text-align: center; }
         .nav-item.active-nav { color: #f1c40f; font-weight: bold; }
-        .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div id="homePage" class="page active">
         <div class="score-box" id="score">0</div>
-        <div style="color: #888; margin-bottom: 20px;">MTM Token</div>
-        <img src="https://www.freeiconspng.com/uploads/gold-coin-png-1.png" class="coin-img" id="coinBtn">
-        
-        <div class="energy-section">
-            <div style="margin-bottom: 8px;">⚡ <span id="energyVal">1000</span> / 1000</div>
-            <div class="energy-bar-bg"><div class="energy-bar-fill" id="energyBar"></div></div>
+        <img src="coin.png" class="coin-img" id="coinBtn">
+        <div class="energy-container">
+            <div style="margin-bottom: 5px;">⚡ <span id="energyVal">1000</span> / 1000</div>
+            <div class="energy-bar"><div class="energy-fill" id="energyBar"></div></div>
         </div>
     </div>
 
     <div id="tasksPage" class="page">
-        <h2 style="color: #f1c40f;">المهام اليومية 🏆</h2>
+        <h2>المهام 🏆</h2>
         <div class="card">
-            <div class="task-info">
-                <div>الاشتراك في القناة</div>
-                <div class="task-reward">+50,000 MTM</div>
-            </div>
+            <div style="text-align: right;"><div>اشتراك القناة</div><div style="color: #f1c40f;">+50,000</div></div>
             <button class="btn-action" onclick="doTask('https://t.me/YourChannel', 50000)">ابدأ</button>
-        </div>
-        <div class="card">
-            <div class="task-info">
-                <div>متابعة حسابنا على X</div>
-                <div class="task-reward">+20,000 MTM</div>
-            </div>
-            <button class="btn-action" onclick="alert('قريباً!')">قريباً</button>
         </div>
     </div>
 
     <div id="friendsPage" class="page">
-        <h2 style="color: #f1c40f;">دعوة الأصدقاء 👥</h2>
-        <p style="color: #888;">ستحصل على 10,000 عن كل صديق</p>
+        <h2>الأصدقاء 👥</h2>
         <div class="card" style="flex-direction: column; gap: 15px;">
-            <div id="refLink" style="font-size: 0.8rem; color: #f1c40f;">https://t.me/MTM_Coin_App_bot?start=user123</div>
-            <button class="btn-action" style="width: 100%;" onclick="copyLink()">نسخ رابط الدعوة</button>
+            <div id="refLink" style="font-size: 0.8rem; color: #f1c40f;">https://t.me/MTM_Coin_App_bot?start=user</div>
+            <button class="btn-action" style="width: 100%;" onclick="copyLink()">نسخ الرابط</button>
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active-nav" id="navHome" onclick="showPage('home')"><span class="nav-icon">🏠</span>الرئيسية</div>
-        <div class="nav-item" id="navTasks" onclick="showPage('tasks')"><span class="nav-icon">📋</span>المهام</div>
-        <div class="nav-item" id="navFriends" onclick="showPage('friends')"><span class="nav-icon">👥</span>الأصدقاء</div>
+        <div class="nav-item active-nav" id="navHome" onclick="showPage('home')">🏠<br>الرئيسية</div>
+        <div class="nav-item" id="navTasks" onclick="showPage('tasks')">📋<br>المهام</div>
+        <div class="nav-item" id="navFriends" onclick="showPage('friends')">👥<br>الأصدقاء</div>
     </div>
 
     <script>
         let score = parseInt(localStorage.getItem('mtm_score')) || 0;
         let energy = parseInt(localStorage.getItem('mtm_energy')) || 1000;
-        const maxEnergy = 1000;
-
         function updateUI() {
             document.getElementById('score').innerText = score.toLocaleString();
             document.getElementById('energyVal').innerText = energy;
-            document.getElementById('energyBar').style.width = (energy / maxEnergy * 100) + "%";
+            document.getElementById('energyBar').style.width = (energy/1000*100) + "%";
         }
-
-        function showPage(pageName) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            document.getElementById(pageName + 'Page').classList.add('active');
-            document.getElementById('nav' + pageName.charAt(0).toUpperCase() + pageName.slice(1)).classList.add('active-nav');
+        function showPage(p) {
+            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active-nav'));
+            document.getElementById(p+'Page').classList.add('active');
+            document.getElementById('nav'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active-nav');
         }
-
         document.getElementById('coinBtn').addEventListener('click', () => {
-            if (energy > 0) {
-                score++; energy--;
-                localStorage.setItem('mtm_score', score);
-                localStorage.setItem('mtm_energy', energy);
-                updateUI();
-                if (navigator.vibrate) navigator.vibrate(10);
-            }
+            if (energy > 0) { score++; energy--; updateUI(); localStorage.setItem('mtm_score', score); localStorage.setItem('mtm_energy', energy); }
         });
-
-        function doTask(url, reward) {
-            window.open(url, '_blank');
-            setTimeout(() => {
-                score += reward;
-                localStorage.setItem('mtm_score', score);
-                updateUI();
-                alert("مبروك! تم إضافة 50,000 نقطة.");
-            }, 3000);
-        }
-
-        function copyLink() {
-            navigator.clipboard.writeText(document.getElementById('refLink').innerText);
-            alert("تم نسخ الرابط بنجاح!");
-        }
-
-        setInterval(() => { if (energy < maxEnergy) { energy++; updateUI(); } }, 1500);
+        function copyLink() { alert("تم النسخ!"); }
+        function doTask(u, r) { window.open(u, '_blank'); setTimeout(() => { score += r; updateUI(); alert("تمت الإضافة!"); }, 2000); }
+        setInterval(() => { if (energy < 1000) { energy++; updateUI(); } }, 1500);
         updateUI();
     </script>
 </body>
