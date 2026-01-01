@@ -13,6 +13,7 @@
         .coin-img:active { transform: scale(0.92); }
         .card { background: #1a1a1a; width: 90%; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
         .btn-action { background: #f1c40f; color: black; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-done { background: #2ecc71; color: white; cursor: default; }
         .energy-container { width: 85%; margin-top: 30px; }
         .energy-bar { background: #222; height: 12px; border-radius: 10px; overflow: hidden; }
         .energy-fill { background: #f1c40f; height: 100%; width: 100%; transition: width 0.2s; }
@@ -36,7 +37,7 @@
         <h2>المهام 🏆</h2>
         <div class="card">
             <div style="text-align: right;"><div>اشتراك القناة</div><div style="color: #f1c40f;">+50,000</div></div>
-            <button class="btn-action" onclick="doTask('https://t.me/YourChannel', 50000)">ابدأ</button>
+            <button id="taskBtn" class="btn-action" onclick="doTask('https://t.me/MTM_coin', 50000)">ابدأ</button>
         </div>
     </div>
 
@@ -44,7 +45,7 @@
         <h2>الأصدقاء 👥</h2>
         <div class="card" style="flex-direction: column; gap: 15px;">
             <div id="refLink" style="font-size: 0.8rem; color: #f1c40f;">https://t.me/MTM_Coin_App_bot?start=user</div>
-            <button class="btn-action" style="width: 100%;" onclick="copyLink()">نسخ الرابط</button>
+            <button class="btn-action" onclick="copyLink()">نسخ الرابط</button>
         </div>
     </div>
 
@@ -57,24 +58,17 @@
     <script>
         let score = parseInt(localStorage.getItem('mtm_score')) || 0;
         let energy = parseInt(localStorage.getItem('mtm_energy')) || 1000;
+        let taskDone = localStorage.getItem('mtm_task_sub') === 'true';
+
         function updateUI() {
             document.getElementById('score').innerText = score.toLocaleString();
             document.getElementById('energyVal').innerText = energy;
             document.getElementById('energyBar').style.width = (energy/1000*100) + "%";
-        }
-        function showPage(p) {
-            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active-nav'));
-            document.getElementById(p+'Page').classList.add('active');
-            document.getElementById('nav'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active-nav');
-        }
-        document.getElementById('coinBtn').addEventListener('click', () => {
-            if (energy > 0) { score++; energy--; updateUI(); localStorage.setItem('mtm_score', score); localStorage.setItem('mtm_energy', energy); }
-        });
-        function copyLink() { alert("تم النسخ!"); }
-        function doTask(u, r) { window.open(u, '_blank'); setTimeout(() => { score += r; updateUI(); alert("تمت الإضافة!"); }, 2000); }
-        setInterval(() => { if (energy < 1000) { energy++; updateUI(); } }, 1500);
-        updateUI();
-    </script>
-</body>
-</html>
+            
+            // تحديث شكل زر المهمة إذا كانت مكتملة
+            if (taskDone) {
+                const btn = document.getElementById('taskBtn');
+                btn.innerText = "مكتمل ✅";
+                btn.classList.add('btn-done');
+                btn.onclick = null;
+            }
