@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin - Full App</title>
+    <title>MTM Coin</title>
     <style>
-        body { background: radial-gradient(circle, #1e272e, #000); color: white; text-align: center; font-family: sans-serif; height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; }
+        body { 
+            background: radial-gradient(circle, #1e272e, #000); 
+            color: white; text-align: center; font-family: sans-serif; 
+            height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; 
+        }
         .page { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .active { display: flex; }
-        .score-box { font-size: 3.5rem; color: #f1c40f; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 15px rgba(241, 196, 15, 0.4); }
-        .coin-img { width: 220px; height: 220px; object-fit: contain; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
+        .score-box { font-size: 3.5rem; color: #f1c40f; font-weight: bold; margin-bottom: 10px; }
+        .coin-img { width: 220px; height: 220px; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
         .coin-img:active { transform: scale(0.92); }
-        .card { background: #2f3542; width: 90%; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-action { background: #f1c40f; color: black; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .nav-bar { background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #333; }
         .nav-item { color: #888; cursor: pointer; font-size: 0.8rem; text-align: center; }
         .nav-item.active-nav { color: #f1c40f; font-weight: bold; }
@@ -21,32 +23,19 @@
 <body>
     <div id="homePage" class="page active">
         <div class="score-box" id="score">0</div>
-        <img src="https://images.coingeek.com/2020/08/bitcoin-cash-logo-2.png" class="coin-img" id="coinBtn">
+        <img src="https://telegra.ph/file/ed1732e6005d59f77f985.png" class="coin-img" id="coinBtn">
         <div style="width: 100%; margin-top: 20px;">
             <div style="margin-bottom: 5px;">⚡ الطاقة: <span id="energyVal">1000</span> / 1000</div>
             <center><div style="width: 80%; background: #333; height: 10px; border-radius: 10px; overflow: hidden;"><div id="energyBar" style="background: #f1c40f; height: 100%; width: 100%;"></div></div></center>
         </div>
     </div>
 
-    <div id="tasksPage" class="page">
-        <h2>المهام المتاحة 🏆</h2>
-        <div class="card">
-            <div style="text-align: right;"><div>الاشتراك في القناة</div><div style="color: #f1c40f;">+50,000</div></div>
-            <button class="btn-action" onclick="doTask('https://t.me/YourChannel', 50000)">ابدأ</button>
-        </div>
-    </div>
-
-    <div id="friendsPage" class="page">
-        <h2>دعوة الأصدقاء 👥</h2>
-        <div class="card" style="flex-direction: column; gap: 15px;">
-            <div id="refLink" style="font-size: 0.8rem; color: #aaa;">https://t.me/MTM_Coin_App_bot?start=user</div>
-            <button class="btn-action" style="width: 100%;" onclick="copyLink()">نسخ رابط الدعوة</button>
-        </div>
-    </div>
+    <div id="tasksPage" class="page"><h2>المهام 🏆</h2></div>
+    <div id="friendsPage" class="page"><h2>الأصدقاء 👥</h2></div>
 
     <div class="nav-bar">
         <div class="nav-item active-nav" id="navHome" onclick="showPage('home')">🏠<br>الرئيسية</div>
-        <div class="nav-item" id="navTasks" onclick="showPagePage('tasks')">📋<br>المهام</div>
+        <div class="nav-item" id="navTasks" onclick="showPage('tasks')">📋<br>المهام</div>
         <div class="nav-item" id="navFriends" onclick="showPage('friends')">👥<br>الأصدقاء</div>
     </div>
 
@@ -68,8 +57,6 @@
         document.getElementById('coinBtn').addEventListener('click', () => {
             if (energy > 0) { score++; energy--; localStorage.setItem('mtm_score', score); localStorage.setItem('mtm_energy', energy); updateUI(); }
         });
-        function copyLink() { alert("تم النسخ!"); }
-        function doTask(u, r) { window.open(u, '_blank'); setTimeout(() => { score += r; updateUI(); alert("مبروك!"); }, 2000); }
         setInterval(() => { if (energy < maxEnergy) { energy++; updateUI(); } }, 1000);
         updateUI();
     </script>
