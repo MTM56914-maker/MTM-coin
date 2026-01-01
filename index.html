@@ -5,14 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>MTM Coin - Professional</title>
     <style>
-        body { background: #000; color: white; text-align: center; font-family: 'Segoe UI', sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; justify-content: space-around; align-items: center; user-select: none; }
-        .score-box { font-size: 3rem; color: #f1c40f; font-weight: bold; }
-        .coin-container { position: relative; }
-        .coin { width: 220px; cursor: pointer; transition: transform 0.1s; z-index: 2; }
-        .coin:active { transform: scale(0.95); }
-        .energy-container { width: 80%; background: #333; height: 20px; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
-        .energy-bar { background: linear-gradient(90deg, #f1c40f, #f39c12); height: 100%; width: 100%; transition: width 0.2s; }
-        .energy-text { font-size: 1.1rem; color: #bdc3c7; }
+        body { 
+            background: radial-gradient(circle, #1e272e, #000); 
+            color: white; 
+            text-align: center; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            height: 100vh; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-around; 
+            align-items: center; 
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .score-box { font-size: 4rem; color: #f1c40f; font-weight: bold; text-shadow: 0 0 20px rgba(241, 196, 15, 0.5); }
+        .coin-container { position: relative; display: flex; justify-content: center; align-items: center; }
+        .coin { 
+            width: 240px; 
+            height: 240px;
+            cursor: pointer; 
+            transition: transform 0.05s; 
+            z-index: 2; 
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(241, 196, 15, 0.2);
+        }
+        .coin:active { transform: scale(0.92); }
+        .energy-container { width: 85%; background: #2f3542; height: 18px; border-radius: 20px; overflow: hidden; margin-top: 10px; border: 1px solid #57606f; }
+        .energy-bar { background: linear-gradient(90deg, #eccc68, #ff7f50); height: 100%; width: 100%; transition: width 0.2s; }
+        .energy-text { font-size: 1.2rem; color: #ced6e0; font-weight: bold; }
+        .stats { margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -20,11 +42,11 @@
     <div class="score-box" id="score">0</div>
 
     <div class="coin-container">
-        <img src="https://cdn-icons-png.flaticon.com/512/5402/5402377.png" class="coin" id="coinBtn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d6/Gold_coin_icon.png" class="coin" id="coinBtn">
     </div>
 
-    <div style="width: 100%;">
-        <div class="energy-text">الطاقة: <span id="energyVal">1000</span> / 1000</div>
+    <div class="stats" style="width: 100%;">
+        <div class="energy-text">⚡ الطاقة: <span id="energyVal">1000</span> / 1000</div>
         <center>
             <div class="energy-container">
                 <div class="energy-bar" id="energyBar"></div>
@@ -41,20 +63,17 @@
         const energyEl = document.getElementById('energyVal');
         const energyBar = document.getElementById('energyBar');
 
-        scoreEl.innerText = score;
-        
-        // تحديث الطاقة والعداد
         function updateUI() {
-            scoreEl.innerText = score;
+            scoreEl.innerText = score.toLocaleString();
             energyEl.innerText = energy;
             energyBar.style.width = (energy / maxEnergy * 100) + "%";
         }
 
-        // عند الضغط على العملة
-        document.getElementById('coinBtn').addEventListener('click', () => {
+        document.getElementById('coinBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault(); // يمنع الزووم عند النقر المتعدد
             if (energy > 0) {
-                score++;
-                energy--;
+                score += 1;
+                energy -= 1;
                 localStorage.setItem('mtm_score', score);
                 localStorage.setItem('mtm_energy', energy);
                 updateUI();
@@ -62,10 +81,10 @@
             }
         });
 
-        // شحن الطاقة تلقائياً (نقطة كل ثانية)
+        // شحن الطاقة (نقطتين كل ثانية لسرعة أكبر)
         setInterval(() => {
             if (energy < maxEnergy) {
-                energy++;
+                energy = Math.min(maxEnergy, energy + 2);
                 localStorage.setItem('mtm_energy', energy);
                 updateUI();
             }
