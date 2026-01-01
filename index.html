@@ -5,141 +5,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>MTM Coin</title>
     <style>
-        body { 
-            background: #000; color: white; text-align: center; font-family: sans-serif; 
-            height: 100vh; margin: 0; overflow: hidden; display: flex; flex-direction: column; 
-        }
-        .page { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        body { background: #000; color: white; text-align: center; font-family: sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; }
+        .page { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; }
         .active { display: flex; }
-
         .score-box { font-size: 3.5rem; color: #f1c40f; font-weight: bold; margin-bottom: 10px; }
-        .coin-img { 
-            width: 240px; height: 240px; cursor: pointer; transition: transform 0.05s; 
-            -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 0 15px #f1c40f); 
-        }
-        .coin-img:active { transform: scale(0.92); }
-
-        .card { 
-            background: #1a1a1a; width: 90%; padding: 15px; border-radius: 12px; 
-            margin-bottom: 10px; display: flex; justify-content: space-between; 
-            align-items: center; border: 1px solid #333; 
-        }
-        .btn-action { 
-            background: #f1c40f; color: black; border: none; padding: 10px 20px; 
-            border-radius: 8px; font-weight: bold; cursor: pointer;
-        }
-        .btn-done { background: #2ecc71 !important; color: white !important; cursor: default; }
-
-        .energy-container { width: 85%; margin-top: 30px; }
-        .energy-bar { background: #222; height: 12px; border-radius: 10px; overflow: hidden; }
-        .energy-fill { background: #f1c40f; height: 100%; width: 100%; transition: width 0.2s; }
-
-        .nav-bar { background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; padding-bottom: 25px; }
-        .nav-item { color: #888; cursor: pointer; font-size: 0.8rem; text-align: center; flex: 1; }
-        .nav-item.active-nav { color: #f1c40f; font-weight: bold; }
+        .coin-img { width: 220px; height: 220px; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 0 10px #f1c40f); }
+        .coin-img:active { transform: scale(0.95); }
+        .card { background: #1a1a1a; width: 90%; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .btn-action { background: #f1c40f; color: black; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-done { background: #2ecc71 !important; color: white; cursor: default; }
+        .nav-bar { background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
+        .nav-item { color: #888; cursor: pointer; font-size: 0.9rem; flex: 1; }
+        .active-nav { color: #f1c40f; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="homePage" class="page active">
         <div class="score-box" id="score">0</div>
-        <img src="coin.png" class="coin-img" id="coinBtn" alt="MTM Coin">
-        <div class="energy-container">
-            <div style="margin-bottom: 8px;">⚡ <span id="energyVal">1000</span> / 1000</div>
-            <div class="energy-bar"><div class="energy-fill" id="energyBar"></div></div>
-        </div>
+        <img src="coin.png" class="coin-img" onclick="handleTap()">
+        <div style="margin-top: 20px;">⚡ الطاقة: <span id="energyVal">1000</span></div>
     </div>
 
     <div id="tasksPage" class="page">
         <h2>المهام 🏆</h2>
         <div class="card">
-            <div style="text-align: right;">
-                <div>الاشتراك في القناة</div>
-                <div style="color: #f1c40f;">+50,000</div>
-            </div>
-            <button id="taskBtn" class="btn-action" onclick="doTask()">ابدأ</button>
+            <div style="text-align: right;"><div>اشتراك القناة</div><div style="color:#f1c40f">+50,000</div></div>
+            <button id="taskBtn" class="btn-action" onclick="goChannel()">ابدأ</button>
         </div>
     </div>
 
     <div id="friendsPage" class="page">
         <h2>الأصدقاء 👥</h2>
-        <div class="card" style="flex-direction: column; gap: 15px;">
-            <div id="refLink" style="font-size: 0.8rem; color: #f1c40f;">https://t.me/MTM_Coin_App_bot?start=user</div>
-            <button class="btn-action" style="width: 100%;" onclick="copyLink()">نسخ الرابط</button>
+        <div class="card" style="flex-direction: column; gap: 10px;">
+            <div id="refLink">https://t.me/MTM_Coin_App_bot?start=user</div>
+            <button class="btn-action" onclick="copyLink()">نسخ الرابط</button>
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active-nav" onclick="showPage('home', this)">🏠<br>الرئيسية</div>
-        <div class="nav-item" onclick="showPage('tasks', this)">📋<br>المهام</div>
-        <div class="nav-item" onclick="showPage('friends', this)">👥<br>الأصدقاء</div>
+        <div class="nav-item active-nav" id="n1" onclick="showP('home', 'n1')">🏠 الرئيسية</div>
+        <div class="nav-item" id="n2" onclick="showP('tasks', 'n2')">📋 المهام</div>
+        <div class="nav-item" id="n3" onclick="showP('friends', 'n3')">👥 الأصدقاء</div>
     </div>
 
     <script>
-        let score = parseInt(localStorage.getItem('mtm_score')) || 0;
-        let energy = parseInt(localStorage.getItem('mtm_energy')) || 1000;
-        let taskCompleted = localStorage.getItem('mtm_task_done') === 'true';
+        let score = parseInt(localStorage.getItem('mtm_s')) || 0;
+        let energy = parseInt(localStorage.getItem('mtm_e')) || 1000;
+        let done = localStorage.getItem('mtm_d') === '1';
 
-        function updateUI() {
+        function update() {
             document.getElementById('score').innerText = score.toLocaleString();
             document.getElementById('energyVal').innerText = energy;
-            document.getElementById('energyBar').style.width = (energy / 10).toFixed(0) + "%";
-            
-            if (taskCompleted) {
-                const btn = document.getElementById('taskBtn');
-                if(btn) {
-                    btn.innerText = "مكتمل ✅";
-                    btn.classList.add('btn-done');
-                    btn.onclick = null;
-                }
+            if (done) {
+                let b = document.getElementById('taskBtn');
+                b.innerText = "مكتمل ✅"; b.className = "btn-action btn-done"; b.onclick = null;
             }
         }
 
-        function showPage(pageId, navElement) {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById(pageId + 'Page').style.display = 'flex';
-            
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active-nav'));
-            navElement.classList.add('active-nav');
+        function showP(pId, nId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+            document.getElementById(pId + 'Page').classList.add('active');
+            document.getElementById(nId).classList.add('active-nav');
         }
 
-        document.getElementById('coinBtn').addEventListener('click', () => {
+        function handleTap() {
             if (energy > 0) {
-                score++;
-                energy--;
-                updateUI();
-                localStorage.setItem('mtm_score', score);
-                localStorage.setItem('mtm_energy', energy);
+                score++; energy--;
+                update();
+                localStorage.setItem('mtm_s', score);
+                localStorage.setItem('mtm_e', energy);
             }
-        });
+        }
 
-        function doTask() {
-            if (taskCompleted) return;
+        function goChannel() {
+            if (done) return;
             window.open('https://t.me/MTM_coin', '_blank');
             setTimeout(() => {
-                score += 50000;
-                taskCompleted = true;
-                localStorage.setItem('mtm_score', score);
-                localStorage.setItem('mtm_task_done', 'true');
-                updateUI();
-                alert("تم إضافة 50,000 نقطة!");
+                score += 50000; done = true;
+                localStorage.setItem('mtm_s', score);
+                localStorage.setItem('mtm_d', '1');
+                update();
+                alert("مبروك! نلت 50 ألف نقطة.");
             }, 2000);
         }
 
-        function copyLink() {
-            const link = document.getElementById('refLink').innerText;
-            navigator.clipboard.writeText(link).then(() => alert("تم نسخ رابط الدعوة!"));
-        }
+        function copyLink() { alert("تم النسخ!"); }
 
-        setInterval(() => {
-            if (energy < 1000) {
-                energy++;
-                updateUI();
-                localStorage.setItem('mtm_energy', energy);
-            }
-        }, 1500);
-
-        updateUI();
+        setInterval(() => { if (energy < 1000) { energy++; update(); } }, 1500);
+        update();
     </script>
 </body>
 </html>
