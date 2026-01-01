@@ -70,4 +70,76 @@
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active-nav" onclick="showPage('home', this)">🏠
+        <div class="nav-item active-nav" onclick="showPage('home', this)">🏠<br>الرئيسية</div>
+        <div class="nav-item" onclick="showPage('tasks', this)">📋<br>المهام</div>
+        <div class="nav-item" onclick="showPage('friends', this)">👥<br>الأصدقاء</div>
+    </div>
+
+    <script>
+        let score = parseInt(localStorage.getItem('mtm_score')) || 0;
+        let energy = parseInt(localStorage.getItem('mtm_energy')) || 1000;
+        let taskCompleted = localStorage.getItem('mtm_task_done') === 'true';
+
+        function updateUI() {
+            document.getElementById('score').innerText = score.toLocaleString();
+            document.getElementById('energyVal').innerText = energy;
+            document.getElementById('energyBar').style.width = (energy / 10).toFixed(0) + "%";
+            
+            if (taskCompleted) {
+                const btn = document.getElementById('taskBtn');
+                if(btn) {
+                    btn.innerText = "مكتمل ✅";
+                    btn.classList.add('btn-done');
+                    btn.onclick = null;
+                }
+            }
+        }
+
+        function showPage(pageId, navElement) {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById(pageId + 'Page').style.display = 'flex';
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active-nav'));
+            navElement.classList.add('active-nav');
+        }
+
+        document.getElementById('coinBtn').addEventListener('click', () => {
+            if (energy > 0) {
+                score++;
+                energy--;
+                updateUI();
+                localStorage.setItem('mtm_score', score);
+                localStorage.setItem('mtm_energy', energy);
+            }
+        });
+
+        function doTask() {
+            if (taskCompleted) return;
+            window.open('https://t.me/MTM_coin', '_blank');
+            setTimeout(() => {
+                score += 50000;
+                taskCompleted = true;
+                localStorage.setItem('mtm_score', score);
+                localStorage.setItem('mtm_task_done', 'true');
+                updateUI();
+                alert("تم إضافة 50,000 نقطة!");
+            }, 2000);
+        }
+
+        function copyLink() {
+            const link = document.getElementById('refLink').innerText;
+            navigator.clipboard.writeText(link).then(() => alert("تم نسخ رابط الدعوة!"));
+        }
+
+        setInterval(() => {
+            if (energy < 1000) {
+                energy++;
+                updateUI();
+                localStorage.setItem('mtm_energy', energy);
+            }
+        }, 1500);
+
+        updateUI();
+    </script>
+</body>
+</html>
