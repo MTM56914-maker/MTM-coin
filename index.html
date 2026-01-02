@@ -1,100 +1,119 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin</title>
-    <style>
-        body { background: #000; color: white; text-align: center; font-family: sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; }
-        .page { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; }
-        .active { display: flex; }
-        .score-box { font-size: 3.5rem; color: #f1c40f; font-weight: bold; margin-bottom: 10px; }
-        .coin-img { width: 220px; height: 220px; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 0 10px #f1c40f); }
-        .coin-img:active { transform: scale(0.95); }
-        .card { background: #1a1a1a; width: 90%; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
-        .btn-action { background: #f1c40f; color: black; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-done { background: #2ecc71 !important; color: white; cursor: default; }
-        .nav-bar { background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
-        .nav-item { color: #888; cursor: pointer; font-size: 0.9rem; flex: 1; }
-        .active-nav { color: #f1c40f; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<title>Tap Game</title>
+
+<style>
+body{
+  margin:0;
+  padding:0;
+  background:#0f0f0f;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+.profile{
+  margin-top:15px;
+  font-size:16px;
+  opacity:0.9;
+}
+
+.coin{
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:radial-gradient(circle,#ffd700,#b8860b);
+  margin:40px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:90px;
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 0 30px gold;
+  transition:transform 0.1s;
+}
+
+.coin:active{
+  transform:scale(0.95);
+}
+
+.score{
+  font-size:32px;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="homePage" class="page active">
-        <div class="score-box" id="score">0</div>
-        <img src="coin.png" class="coin-img" onclick="handleTap()">
-        <div style="margin-top: 20px;">⚡ الطاقة: <span id="energyVal">1000</span></div>
-    </div>
+<h2 id="title">اضغط على العملة</h2>
 
-    <div id="tasksPage" class="page">
-        <h2>المهام 🏆</h2>
-        <div class="card">
-            <div style="text-align: right;"><div>اشتراك القناة</div><div style="color:#f1c40f">+50,000</div></div>
-            <button id="taskBtn" class="btn-action" onclick="goChannel()">ابدأ</button>
-        </div>
-    </div>
+<div class="profile" id="profile"></div>
 
-    <div id="friendsPage" class="page">
-        <h2>الأصدقاء 👥</h2>
-        <div class="card" style="flex-direction: column; gap: 10px;">
-            <div id="refLink">https://t.me/MTM_Coin_App_bot?start=user</div>
-            <button class="btn-action" onclick="copyLink()">نسخ الرابط</button>
-        </div>
-    </div>
+<div class="coin" onclick="tap()">🪙</div>
 
-    <div class="nav-bar">
-        <div class="nav-item active-nav" id="n1" onclick="showP('home', 'n1')">🏠 الرئيسية</div>
-        <div class="nav-item" id="n2" onclick="showP('tasks', 'n2')">📋 المهام</div>
-        <div class="nav-item" id="n3" onclick="showP('friends', 'n3')">👥 الأصدقاء</div>
-    </div>
+<div class="score">
+  <span id="score">0</span>
+</div>
 
-    <script>
-        let score = parseInt(localStorage.getItem('mtm_s')) || 0;
-        let energy = parseInt(localStorage.getItem('mtm_e')) || 1000;
-        let done = localStorage.getItem('mtm_d') === '1';
+<script>
+// ===== بيانات تيليجرام =====
+let tgUser = null;
+let userId = "guest";
+let userName = "Guest";
+let lang = "en";
 
-        function update() {
-            document.getElementById('score').innerText = score.toLocaleString();
-            document.getElementById('energyVal').innerText = energy;
-            if (done) {
-                let b = document.getElementById('taskBtn');
-                b.innerText = "مكتمل ✅"; b.className = "btn-action btn-done"; b.onclick = null;
-            }
-        }
+if (window.Telegram && Telegram.WebApp) {
+  Telegram.WebApp.ready();
+  tgUser = Telegram.WebApp.initDataUnsafe.user;
 
-        function showP(pId, nId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            document.getElementById(pId + 'Page').classList.add('active');
-            document.getElementById(nId).classList.add('active-nav');
-        }
+  if(tgUser){
+    userId = tgUser.id;
+    userName = tgUser.username || tgUser.first_name;
+    lang = tgUser.language_code || "en";
+  }
+}
 
-        function handleTap() {
-            if (energy > 0) {
-                score++; energy--;
-                update();
-                localStorage.setItem('mtm_s', score);
-                localStorage.setItem('mtm_e', energy);
-            }
-        }
+// ===== اللغة =====
+if(lang === "ar"){
+  document.getElementById("title").innerText = "اضغط على العملة";
+}else{
+  document.getElementById("title").innerText = "Tap the coin";
+}
 
-        function goChannel() {
-            if (done) return;
-            window.open('https://t.me/MTM_coin', '_blank');
-            setTimeout(() => {
-                score += 50000; done = true;
-                localStorage.setItem('mtm_s', score);
-                localStorage.setItem('mtm_d', '1');
-                update();
-                alert("مبروك! نلت 50 ألف نقطة.");
-            }, 2000);
-        }
+// ===== عرض الحساب =====
+document.getElementById("profile").innerText =
+  "👤 " + userName + " | ID: " + userId;
 
-        function copyLink() { alert("تم النسخ!"); }
+// ===== تحميل النقاط حسب المستخدم =====
+let storageKey = "score_" + userId;
+let score = localStorage.getItem(storageKey);
+if(score === null){
+  score = 0;
+}else{
+  score = parseInt(score);
+}
+document.getElementById("score").innerText = score;
 
-        setInterval(() => { if (energy < 1000) { energy++; update(); } }, 1500);
-        update();
-    </script>
+// ===== منع الغش: حد الضغط في الثانية =====
+let lastTap = 0;
+const tapCooldown = 200; // 200ms = 5 ضغطات في الثانية
+
+function tap(){
+  let now = Date.now();
+  if(now - lastTap < tapCooldown){
+    // يمنع الضغط السريع جدًا
+    return;
+  }
+  lastTap = now;
+
+  score++;
+  document.getElementById("score").innerText = score;
+  localStorage.setItem(storageKey, score);
+}
+</script>
+
 </body>
 </html>
