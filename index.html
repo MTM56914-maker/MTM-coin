@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin - Legend Edition</title>
+    <title>MTM Coin - Ultimate Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -19,11 +19,9 @@
         body {
             background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
             margin: 0; overflow: hidden; -webkit-user-select: none; user-select: none;
-            touch-action: manipulation; direction: rtl;
-            -webkit-tap-highlight-color: transparent; /* إلغاء المربع الأزرق */
+            touch-action: manipulation; direction: rtl; -webkit-tap-highlight-color: transparent;
         }
 
-        /* تحسينات الهيدر */
         .header {
             padding: 15px; background: rgba(22, 22, 37, 0.8); backdrop-filter: blur(10px);
             display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;
@@ -31,150 +29,132 @@
 
         #balance-container { text-align: center; margin: 20px 0; }
         #balance {
-            font-size: 40px; font-weight: 900; background: var(--gold);
+            font-size: 45px; font-weight: 900; background: var(--gold);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* العملة */
         .coin-wrapper { position: relative; display: flex; justify-content: center; align-items: center; height: 240px; }
         #coin {
-            width: 200px; height: 200px; cursor: pointer;
-            transition: transform 0.1s;
-            filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.2));
-            -webkit-tap-highlight-color: transparent;
+            width: 200px; height: 200px; cursor: pointer; border-radius: 50%;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.3));
             -webkit-touch-callout: none;
         }
-        #coin:active { transform: scale(0.95); }
+        #coin:active { transform: scale(0.90); }
 
-        /* تأثيرات النقرات */
         .tap-effect {
-            position: absolute; color: #ffcc00; font-size: 24px; font-weight: bold;
-            pointer-events: none; animation: floatUp 0.6s ease-out forwards; z-index: 100;
+            position: absolute; color: #ffcc00; font-size: 26px; font-weight: bold;
+            pointer-events: none; animation: floatUp 0.7s ease-out forwards; z-index: 100;
         }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
 
-        /* الصفحات */
-        .page { display: none; padding: 20px; height: 75vh; overflow-y: auto; padding-bottom: 120px; }
+        .energy-bar-container { width: 85%; height: 10px; background: #222; border-radius: 10px; margin: 10px auto; overflow: hidden; }
+        #energy-fill { height: 100%; width: 100%; background: var(--gold); transition: width 0.3s; }
+
+        .page { display: none; padding: 20px; animation: fadeIn 0.3s; height: 75vh; overflow-y: auto; padding-bottom: 120px; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* عناصر القائمة (المهام، الترتيب، التطوير) */
         .card {
-            background: var(--card-bg); padding: 12px; border-radius: 12px;
+            background: var(--card-bg); padding: 12px; border-radius: 15px;
             margin-bottom: 10px; display: flex; align-items: center; border: 1px solid #222;
         }
-        .card i { font-size: 20px; margin-left: 12px; color: var(--accent); }
-        .info { flex-grow: 1; text-align: right; }
-        .rank-num { font-weight: bold; margin-left: 10px; color: gold; width: 30px; }
+        .info { flex-grow: 1; text-align: right; margin-right: 10px; }
+        .rank-num { width: 30px; font-weight: bold; color: var(--accent); }
 
-        /* الأزرار */
         .btn {
-            background: var(--gold); color: #000; padding: 8px 14px; border-radius: 8px;
-            font-weight: bold; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+            background: var(--gold); color: #000; padding: 8px 16px; border-radius: 10px;
+            font-weight: 800; border: none; cursor: pointer;
         }
-        .btn:disabled { background: #444; color: #888; }
 
-        /* الناف بار السفلي */
         .nav-bar {
-            position: fixed; bottom: 10px; left: 5%; width: 90%;
-            display: flex; background: rgba(18, 18, 32, 0.95); backdrop-filter: blur(10px);
-            border-radius: 15px; padding: 8px 0; border: 1px solid #333; z-index: 1000;
+            position: fixed; bottom: 15px; left: 5%; width: 90%;
+            display: flex; background: rgba(22, 22, 37, 0.95); backdrop-filter: blur(15px);
+            border-radius: 20px; padding: 10px 0; border: 1px solid #333; z-index: 1000;
         }
-        .nav-item { flex: 1; text-align: center; color: #777; font-size: 11px; -webkit-tap-highlight-color: transparent; }
+        .nav-item { flex: 1; text-align: center; color: #666; font-size: 11px; }
         .nav-item.active { color: var(--accent); }
-        .nav-item i { font-size: 18px; margin-bottom: 4px; }
 
-        /* شريط الطاقة */
-        .energy-bar-container { width: 80%; height: 8px; background: #222; border-radius: 10px; margin: 10px auto; overflow: hidden; }
-        #energy-fill { height: 100%; width: 100%; background: var(--gold); transition: width 0.3s; }
+        #lang-btn { background: #222; color: gold; border: 1px solid gold; padding: 4px 10px; border-radius: 8px; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div id="level-txt">MTM Coin</div>
-    <button id="lang-btn" class="btn" onclick="toggleLang()" style="padding: 2px 8px; font-size: 10px;">EN / عربي</button>
+    <div id="level-txt">Level: 1</div>
+    <button id="lang-btn" onclick="toggleLang()">EN / عربي</button>
 </div>
 
-<div id="game-page" class="page active">
-    <div id="balance-container">
-        <div id="balance-label" style="font-size:12px; color:#aaa;">الرصيد الكلي</div>
-        <div id="balance">0</div>
-    </div>
-    <div class="coin-wrapper">
-        <img src="https://cdn-icons-png.flaticon.com/512/6001/6001527.png" id="coin" onpointerdown="handleTap(event)">
-    </div>
-    <div style="text-align: center;">
-        <div style="margin-bottom: 5px;"><span id="energy-label">الطاقة</span>: <span id="energy-txt">1000/1000</span></div>
-        <div class="energy-bar-container"><div id="energy-fill"></div></div>
-    </div>
-    <div class="card" style="margin-top: 20px;">
-        <i class="fas fa-calendar-check"></i>
-        <div class="info">
-            <b id="daily-title">مكافأة يومية</b><br>
-            <small id="daily-desc">احصل على 5,000 كوين يومياً</small>
+<div class="content">
+    <div id="game-page" class="page active">
+        <div id="balance-container">
+            <div id="balance-label" style="font-size:12px; color:#aaa;">رصيدك</div>
+            <div id="balance">0</div>
         </div>
-        <button class="btn" id="daily-btn" onclick="claimDaily()">Claim</button>
+        <div class="coin-wrapper">
+            <img src="coin.png" id="coin" onpointerdown="handleTap(event)" 
+                 onerror="this.src='https://i.ibb.co/L1mP94w/mtm-coin.png'">
+        </div>
+        <div style="text-align: center;">
+            <div style="margin-bottom: 5px;"><span id="energy-label">الطاقة</span>: <span id="energy-txt">1000/1000</span></div>
+            <div class="energy-bar-container"><div id="energy-fill"></div></div>
+            <button class="btn" id="daily-btn" style="margin-top:10px; width:80%;" onclick="claimDaily()">🎁 مكافأة يومية</button>
+        </div>
+    </div>
+
+    <div id="leader-page" class="page">
+        <h2 id="leader-title">المتصدرون 🏆</h2>
+        <div id="leader-list">جاري التحميل...</div>
+    </div>
+
+    <div id="boost-page" class="page">
+        <h2 id="boost-title">التطويرات ⚡</h2>
+        <div class="card">
+            <i class="fas fa-hand-pointer" style="color:gold"></i>
+            <div class="info"><b id="t-n">قوة النقرة</b><br><small id="t-d">سعر: <span id="tap-price">500</span></small></div>
+            <button class="btn" onclick="buyUpgrade('tap')">Upgrade</button>
+        </div>
+        <div class="card">
+            <i class="fas fa-battery-full" style="color:gold"></i>
+            <div class="info"><b id="e-n">مخزون الطاقة</b><br><small id="e-d">سعر: <span id="energy-price">1000</span></small></div>
+            <button class="btn" onclick="buyUpgrade('energy')">Upgrade</button>
+        </div>
+    </div>
+
+    <div id="tasks-page" class="page">
+        <h2 id="tasks-title">المهام 🚀</h2>
+        <div class="card">
+            <i class="fab fa-telegram"></i>
+            <div class="info"><b>Telegram Channel</b><br><small>+50,000</small></div>
+            <button class="btn" onclick="doTask('tg', 50000, 'https://t.me/MTM_coin')">Go</button>
+        </div>
     </div>
 </div>
 
-<div id="boost-page" class="page">
-    <h2 id="boost-title">التطويرات ⚡</h2>
-    <div class="card">
-        <i class="fas fa-hand-pointer"></i>
-        <div class="info"><b id="tap-boost-name">قوة النقرة</b><br><small id="tap-boost-desc">زيادة الربح من كل نقرة</small></div>
-        <button class="btn" onclick="buyUpgrade('tap')"><span id="tap-price">500</span></button>
-    </div>
-    <div class="card">
-        <i class="fas fa-battery-full"></i>
-        <div class="info"><b id="energy-boost-name">مخزون الطاقة</b><br><small id="energy-boost-desc">زيادة السعة القصوى</small></div>
-        <button class="btn" onclick="buyUpgrade('energy')"><span id="energy-price">1000</span></button>
-    </div>
+<div class="nav-bar">
+    <div class="nav-item active" onclick="showP('game-page',this)"><i class="fas fa-coins"></i><br><span id="n-tap">نقر</span></div>
+    <div class="nav-item" onclick="showP('leader-page',this)"><i class="fas fa-trophy"></i><br><span id="n-rank">ترتيب</span></div>
+    <div class="nav-item" onclick="showP('boost-page',this)"><i class="fas fa-bolt"></i><br><span id="n-boost">تطوير</span></div>
+    <div class="nav-item" onclick="showP('tasks-page',this)"><i class="fas fa-tasks"></i><br><span id="n-task">مهام</span></div>
 </div>
-
-<div id="leaderboard-page" class="page">
-    <h2 id="rank-title">قائمة المتصدرين 🏆</h2>
-    <div id="leaderboard-list">
-        جاري تحميل الترتيب...
-    </div>
-</div>
-
-<div id="tasks-page" class="page">
-    <h2 id="tasks-title">المهام 🚀</h2>
-    <div class="card">
-        <i class="fab fa-telegram"></i>
-        <div class="info"><b>Telegram Channel</b><br><small>+50,000</small></div>
-        <button class="btn" onclick="doTask('tg', 50000, 'https://t.me/MTM_coin')">Go</button>
-    </div>
-</div>
-
-<nav class="nav-bar">
-    <div class="nav-item active" onclick="showP('game-page',this)"><i class="fas fa-coins"></i><br><span id="nav-tap">نقر</span></div>
-    <div class="nav-item" onclick="showP('boost-page',this)"><i class="fas fa-bolt"></i><br><span id="nav-boost">تطوير</span></div>
-    <div class="nav-item" onclick="showP('leaderboard-page',this)"><i class="fas fa-trophy"></i><br><span id="nav-rank">ترتيب</span></div>
-    <div class="nav-item" onclick="showP('tasks-page',this)"><i class="fas fa-tasks"></i><br><span id="nav-task">مهام</span></div>
-</nav>
 
 <script>
-// --- تكوين Firebase ---
-const firebaseConfig = { 
-    apiKey: "AIzaSyA1Nnh0P7RdWH7EhBnaGkk6QUNeWRXPKt8", 
-    databaseURL: "https://mtm-coin-a52d9-default-rtdb.firebaseio.com" 
-};
+// الإعدادات
+const firebaseConfig = { apiKey: "AIzaSyA1Nnh0P7RdWH7EhBnaGkk6QUNeWRXPKt8", databaseURL: "https://mtm-coin-a52d9-default-rtdb.firebaseio.com" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const tg = window.Telegram.WebApp;
-const user = tg.initDataUnsafe.user || { id: "Guest", first_name: "Player" };
+tg.expand();
 
-let userData = {
-    score: 0, energy: 1000, maxEnergy: 1000, tapPower: 1,
-    upgrades: { tap: 0, energy: 0 }, lastDaily: 0,
-    name: user.first_name, tasks: {}
-};
+const uid = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "12345";
+const uname = tg.initDataUnsafe.user ? (tg.initDataUnsafe.user.first_name) : "Player";
 
+let userData = { score: 0, energy: 1000, maxEnergy: 1000, tapPower: 1, upgrades: { tap: 0, energy: 0 }, tasks: {}, lastDaily: 0 };
 let currentLang = localStorage.getItem('lang') || 'ar';
-const langStrings = {
-    ar: { balance: "الرصيد الكلي", energy: "الطاقة", daily: "مكافأة يومية", boost: "التطويرات ⚡", rank: "المتصدرون 🏆", navTap: "نقر", navBoost: "تطوير", navRank: "ترتيب", navTask: "مهام" },
-    en: { balance: "TOTAL BALANCE", energy: "Energy", daily: "Daily Reward", boost: "Upgrades ⚡", rank: "Leaderboard 🏆", navTap: "Tap", navBoost: "Boost", navRank: "Rank", navTask: "Tasks" }
+
+const lang = {
+    ar: { tap: "نقر", rank: "ترتيب", boost: "تطوير", task: "مهام", leader: "المتصدرون 🏆", daily: "🎁 مكافأة يومية" },
+    en: { tap: "Tap", rank: "Rank", boost: "Boost", task: "Tasks", leader: "Leaderboard 🏆", daily: "🎁 Daily Reward" }
 };
 
 function toggleLang() {
@@ -184,18 +164,14 @@ function toggleLang() {
 }
 
 function updateUI() {
-    const l = langStrings[currentLang];
     document.body.style.direction = currentLang === 'ar' ? 'rtl' : 'ltr';
-    document.getElementById('balance-label').innerText = l.balance;
-    document.getElementById('energy-label').innerText = l.energy;
-    document.getElementById('daily-title').innerText = l.daily;
-    document.getElementById('boost-title').innerText = l.boost;
-    document.getElementById('rank-title').innerText = l.rank;
-    document.getElementById('nav-tap').innerText = l.navTap;
-    document.getElementById('nav-boost').innerText = l.navBoost;
-    document.getElementById('nav-rank').innerText = l.navRank;
-    document.getElementById('nav-task').innerText = l.navTask;
-
+    document.getElementById('n-tap').innerText = lang[currentLang].tap;
+    document.getElementById('n-rank').innerText = lang[currentLang].rank;
+    document.getElementById('n-boost').innerText = lang[currentLang].boost;
+    document.getElementById('n-task').innerText = lang[currentLang].task;
+    document.getElementById('leader-title').innerText = lang[currentLang].leader;
+    document.getElementById('daily-btn').innerText = lang[currentLang].daily;
+    
     document.getElementById('balance').innerText = Math.floor(userData.score).toLocaleString();
     document.getElementById('energy-txt').innerText = `${Math.floor(userData.energy)}/${userData.maxEnergy}`;
     document.getElementById('energy-fill').style.width = `${(userData.energy/userData.maxEnergy)*100}%`;
@@ -203,7 +179,25 @@ function updateUI() {
     document.getElementById('energy-price').innerText = (1000 * (userData.upgrades.energy + 1)).toLocaleString();
 }
 
-// --- نظام النقر ---
+// نظام الترتيب الحقيقي
+function loadLeaderboard() {
+    db.ref('users').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
+        let list = [];
+        snapshot.forEach(child => { list.push(child.val()); });
+        list.reverse();
+        
+        let html = '';
+        list.forEach((user, index) => {
+            html += `<div class="card">
+                <div class="rank-num">#${index+1}</div>
+                <div class="info"><b>${user.username || 'Unknown'}</b></div>
+                <div style="color:gold">${Math.floor(user.score).toLocaleString()}</div>
+            </div>`;
+        });
+        document.getElementById('leader-list').innerHTML = html;
+    });
+}
+
 function handleTap(e) {
     if(userData.energy < userData.tapPower) return;
     if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
@@ -211,92 +205,66 @@ function handleTap(e) {
     userData.score += userData.tapPower;
     userData.energy -= userData.tapPower;
     
-    // تأثير رقمي
+    // تأثير النص
     const x = e.clientX || e.touches[0].clientX;
     const y = e.clientY || e.touches[0].clientY;
     const div = document.createElement('div');
     div.className = 'tap-effect';
-    div.style.left = x + 'px'; div.style.top = y + 'px';
     div.innerText = `+${userData.tapPower}`;
+    div.style.left = x + 'px'; div.style.top = y + 'px';
     document.body.appendChild(div);
-    setTimeout(()=> div.remove(), 600);
+    setTimeout(() => div.remove(), 700);
 
     updateUI();
     saveData();
 }
 
-// --- نظام الترتيب (قائمة المتصدرين الحقيقية) ---
-function loadLeaderboard() {
-    const listDiv = document.getElementById('leaderboard-list');
-    db.ref('users').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
-        let players = [];
-        snapshot.forEach((child) => {
-            players.push(child.val());
-        });
-        players.reverse(); // ليكون الأعلى في البداية
-
-        listDiv.innerHTML = '';
-        players.forEach((p, index) => {
-            listDiv.innerHTML += `
-                <div class="card">
-                    <div class="rank-num">#${index + 1}</div>
-                    <div class="info">
-                        <b>${p.name || 'Unknown'}</b><br>
-                        <small>${Math.floor(p.score).toLocaleString()} كوين</small>
-                    </div>
-                    <i class="fas fa-medal"></i>
-                </div>`;
-        });
-    });
-}
-
-// --- المكافأة اليومية ---
-function claimDaily() {
-    const now = Date.now();
-    if (now - userData.lastDaily > 24 * 60 * 60 * 1000) {
-        userData.score += 5000;
-        userData.lastDaily = now;
-        saveData();
-        alert(currentLang === 'ar' ? "مبروك! حصلت على 5,000" : "Congrats! You got 5,000");
-    } else {
-        alert(currentLang === 'ar' ? "عد غداً للمطالبة!" : "Come back tomorrow!");
-    }
-}
-
-// --- التطويرات ---
 function buyUpgrade(type) {
-    let cost = type === 'tap' ? 500 * (userData.upgrades.tap + 1) : 1000 * (userData.upgrades.energy + 1);
-    if(userData.score >= cost) {
-        userData.score -= cost;
+    let price = type === 'tap' ? 500 * (userData.upgrades.tap + 1) : 1000 * (userData.upgrades.energy + 1);
+    if(userData.score >= price) {
+        userData.score -= price;
         if(type === 'tap') { userData.tapPower++; userData.upgrades.tap++; }
         else { userData.maxEnergy += 500; userData.upgrades.energy++; }
-        saveData();
-        updateUI();
+        saveData(); updateUI();
     }
 }
 
-// --- وظائف عامة ---
+function claimDaily() {
+    const now = Date.now();
+    if(now - userData.lastDaily > 86400000) {
+        userData.score += 5000;
+        userData.lastDaily = now;
+        saveData(); updateUI();
+        alert("Success! +5,000");
+    } else {
+        alert("Wait 24h!");
+    }
+}
+
+function saveData() { db.ref('users/'+uid).update({ ...userData, username: uname }); }
+
+function init() {
+    db.ref('users/'+uid).on('value', (s) => {
+        if(s.val()) { userData = {...userData, ...s.val()}; updateUI(); }
+        else { saveData(); }
+    });
+    loadLeaderboard();
+}
+
 function showP(id, el) {
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    el.classList.add('active');
-    if(id === 'leaderboard-page') loadLeaderboard();
+    document.getElementById(id).classList.add('active'); el.classList.add('active');
 }
 
-function saveData() { db.ref('users/' + user.id).update(userData); }
-
-function init() {
-    db.ref('users/' + user.id).on('value', (s) => {
-        if(s.exists()) { userData = {...userData, ...s.val()}; }
-        updateUI();
-    });
-    setInterval(() => {
-        if(userData.energy < userData.maxEnergy) {
-            userData.energy = Math.min(userData.maxEnergy, userData.energy + 2);
-            updateUI();
+function doTask(t, r, l) {
+    tg.openLink(l);
+    setTimeout(() => {
+        if(!userData.tasks[t]) {
+            userData.score += r; userData.tasks[t] = true;
+            saveData(); updateUI();
         }
-    }, 1500);
+    }, 4000);
 }
 
 init();
