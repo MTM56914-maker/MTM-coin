@@ -9,175 +9,180 @@
     <style>
         :root { --gold: #ffcc00; --bg: #0a0a12; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
         .header { padding: 15px; background: #161625; display: flex; justify-content: space-between; border-bottom: 1px solid #333; }
-        #balance { font-size: 45px; font-weight: bold; color: var(--gold); text-align: center; margin-top: 10px; }
-        
+        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-align: center; margin-top: 10px; }
         .content { flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
         .page { display: none; padding: 20px; text-align: center; }
         .page.active { display: block; }
 
-        /* منطقة العملة والاهتزاز */
+        /* منطقة العملة والطاقة */
         .game-area { display: flex; align-items: center; justify-content: center; height: 300px; position: relative; }
-        #coin { width: 220px; height: 220px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: transform 0.05s; }
-        .shake-visual { animation: shake 0.1s infinite; }
-        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } 100% { transform: rotate(0deg); } }
+        .glow { position: absolute; width: 200px; height: 200px; background: var(--gold); filter: blur(60px); opacity: 0.2; border-radius: 50%; }
+        #coin { width: 230px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; z-index: 5; transition: transform 0.05s; }
+        .shake-visual { animation: shake 0.1s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        /* شريط الطاقة */
-        .energy-container { width: 80%; margin: 20px auto; text-align: left; direction: ltr; }
-        .energy-bar-bg { background: #333; height: 12px; border-radius: 10px; overflow: hidden; }
-        #energy-fill { background: var(--gold); height: 100%; width: 100%; transition: width 0.2s; }
+        .energy-container { width: 80%; margin: 20px auto; background: #222; height: 15px; border-radius: 10px; overflow: hidden; border: 1px solid #444; }
+        #energy-bar { background: var(--gold); height: 100%; width: 100%; transition: width 0.2s; }
         
         .card { background: #1c1c2e; padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .btn { background: var(--gold); color: black; padding: 10px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
+        .btn:disabled { background: #444; color: #888; }
+
         .nav-bar { position: fixed; bottom: 0; width: 100%; display: flex; background: #161625; border-top: 1px solid #333; padding: 10px 0; }
-        .nav-item { flex: 1; text-align: center; color: #888; font-size: 12px; cursor: pointer; }
+        .nav-item { flex: 1; text-align: center; color: #888; font-size: 12px; }
         .nav-item.active { color: var(--gold); }
-        .btn { background: var(--gold); color: black; padding: 8px 15px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
-        .btn:disabled { background: #444; color: #777; }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <button onclick="toggleLang()" id="lang-btn" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px;">EN</button>
+        <button onclick="toggleLang()" style="background:#333; color:white; border:none; border-radius:5px; padding:5px;" id="lang-btn">EN</button>
         <span>MTM Coin</span>
-        <span style="font-size:12px; color:#888">ID: <span id="uid">...</span></span>
+        <span style="font-size:12px;">ID: <span id="uid">...</span></span>
     </div>
 
     <div class="content">
         <div id="game-page" class="page active">
             <div id="balance">0</div>
             <div class="game-area">
+                <div class="glow"></div>
                 <img src="coin.png" id="coin" alt="MTM" onerror="this.src='https://i.ibb.co/L1mP94w/mtm-coin.png'">
             </div>
-            
-            <div class="energy-container">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:14px;">
-                    <span>⚡ <span id="energy-val">1000</span>/<span id="max-energy-val">1000</span></span>
-                </div>
-                <div class="energy-bar-bg"><div id="energy-fill"></div></div>
-            </div>
+            <div id="energy-text">⚡ 1000 / 1000</div>
+            <div class="energy-container"><div id="energy-bar"></div></div>
         </div>
 
         <div id="tasks-page" class="page">
-            <h2 id="t-upg-h">التطويرات</h2>
+            <h2 id="t-boosts">التطويرات</h2>
             <div class="card">
                 <div style="text-align:right;">
-                    <b id="t-pwr-n">قوة النقرة (+1)</b><br>
-                    <small id="t-prc">السعر</small>: <span id="pwr-price">2000</span>
+                    <b id="t-tap">قوة النقر (+1)</b><br>
+                    <small id="t-p1">السعر</small>: <span id="p1-cost">2000</span>
                 </div>
-                <button class="btn" onclick="buyPwr()">شراء</button>
+                <button class="btn" onclick="buyTap()">شراء</button>
             </div>
             <div class="card">
                 <div style="text-align:right;">
-                    <b id="t-en-n">سعة الطاقة (+500)</b><br>
-                    <small id="t-prc2">السعر</small>: <span id="en-price">5000</span>
+                    <b id="t-energy">مخزون الطاقة</b><br>
+                    <small id="t-p2">السعر</small>: <span id="p2-cost">5000</span>
                 </div>
-                <button class="btn" onclick="buyEnergyLimit()">شراء</button>
+                <button class="btn" onclick="buyEnergy()">شراء</button>
             </div>
 
-            <h2 id="t-tsk-h">المهام</h2>
-            <div class="card" id="task-card-1">
+            <h2 id="t-tasks">المهام</h2>
+            <div class="card" id="task-join-card">
                 <div style="text-align:right;">
-                    <b>الانضمام لقناة البوت</b><br>
+                    <b>انضم للقناة</b><br>
                     <small>+50,000 MTM</small>
                 </div>
-                <button class="btn" onclick="claimTask(1, 50000, 'https://t.me/MTM_coin')">انضم</button>
+                <button class="btn" onclick="doTask(50000, 'https://t.me/MTM_coin')">انضم</button>
             </div>
         </div>
 
         <div id="ref-page" class="page">
-            <h2 id="t-ref-h">الإحالات</h2>
-            <input type="text" id="reflink" readonly style="width:90%; padding:12px; background:#000; border:1px solid #333; color:gold; border-radius:8px; text-align:center;">
-            <button class="btn" style="width:90%; margin-top:10px;" onclick="shareRef()">مشاركة الرابط</button>
+            <h2 id="t-ref">الإحالة</h2>
+            <input type="text" id="reflink" readonly style="width:90%; padding:10px; background:#000; color:gold; border:1px solid #333; border-radius:8px; text-align:center;">
+            <button class="btn" style="width:90%; margin-top:10px;" onclick="share()">مشاركة الرابط</button>
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="showP('game-page', this)"><i class="fas fa-coins"></i><br><span id="n-tap">نقر</span></div>
-        <div class="nav-item" onclick="showP('tasks-page', this)"><i class="fas fa-bolt"></i><br><span id="n-bst">تطوير</span></div>
-        <div class="nav-item" onclick="showP('ref-page', this)"><i class="fas fa-users"></i><br><span id="n-ref">إحالة</span></div>
+        <div class="nav-item active" onclick="showP('game-page', this)"><i class="fas fa-coins"></i>نقر</div>
+        <div class="nav-item" onclick="showP('tasks-page', this)"><i class="fas fa-bolt"></i>تطوير</div>
+        <div class="nav-item" onclick="showP('ref-page', this)"><i class="fas fa-users"></i>إحالة</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        const uid = tg.initDataUnsafe.user?.id || "000";
+        const uid = tg.initDataUnsafe.user?.id || "Player";
 
         // تحميل البيانات المحفوظة
-        let score = parseInt(localStorage.getItem('mtm_s_'+uid)) || 0;
-        let pwr = parseInt(localStorage.getItem('mtm_p_'+uid)) || 1;
-        let maxEnergy = parseInt(localStorage.getItem('mtm_me_'+uid)) || 1000;
-        let energy = parseInt(localStorage.getItem('mtm_e_'+uid)) || maxEnergy;
-        let tasks = JSON.parse(localStorage.getItem('mtm_t_'+uid)) || [];
-        let lang = localStorage.getItem('mtm_l_'+uid) || 'ar';
+        let score = parseInt(localStorage.getItem('m_s_'+uid)) || 0;
+        let tapPower = parseInt(localStorage.getItem('m_t_'+uid)) || 1;
+        let maxEnergy = parseInt(localStorage.getItem('m_me_'+uid)) || 1000;
+        let currentEnergy = parseInt(localStorage.getItem('m_ce_'+uid)) || maxEnergy;
+        let energyLvl = parseInt(localStorage.getItem('m_el_'+uid)) || 0; 
+        let taskDone = localStorage.getItem('m_td_'+uid) === 'true';
 
         function updateUI() {
             document.getElementById('balance').innerText = score.toLocaleString();
-            document.getElementById('energy-val').innerText = Math.floor(energy);
-            document.getElementById('max-energy-val').innerText = maxEnergy;
-            document.getElementById('energy-fill').style.width = (energy / maxEnergy * 100) + "%";
-            document.getElementById('pwr-price').innerText = (pwr * 2000).toLocaleString();
-            document.getElementById('en-price').innerText = (maxEnergy * 5).toLocaleString();
             document.getElementById('uid').innerText = uid;
+            document.getElementById('energy-text').innerText = `⚡ ${currentEnergy} / ${maxEnergy}`;
+            document.getElementById('energy-bar').style.width = (currentEnergy / maxEnergy * 100) + "%";
+            
+            // تحديث أسعار التطوير
+            document.getElementById('p1-cost').innerText = (2000 * tapPower).toLocaleString();
+            
+            // حساب سعر تطوير الطاقة (5000 ثم يتضاعف)
+            let eCost = 5000 * Math.pow(2, energyLvl);
+            document.getElementById('p2-cost').innerText = eCost.toLocaleString();
+
+            // إخفاء المهمة إذا تمت
+            if(taskDone) document.getElementById('task-join-card').style.display = 'none';
+
             document.getElementById('reflink').value = "https://t.me/MTM_coin_bot?start=" + uid;
 
-            if(tasks.includes(1)) document.getElementById('task-card-1').style.display = 'none';
-
             // حفظ البيانات
-            localStorage.setItem('mtm_s_'+uid, score);
-            localStorage.setItem('mtm_p_'+uid, pwr);
-            localStorage.setItem('mtm_me_'+uid, maxEnergy);
-            localStorage.setItem('mtm_e_'+uid, energy);
-            localStorage.setItem('mtm_t_'+uid, JSON.stringify(tasks));
+            localStorage.setItem('m_s_'+uid, score);
+            localStorage.setItem('m_t_'+uid, tapPower);
+            localStorage.setItem('m_me_'+uid, maxEnergy);
+            localStorage.setItem('m_ce_'+uid, currentEnergy);
+            localStorage.setItem('m_el_'+uid, energyLvl);
         }
 
-        // نظام النقر
-        document.getElementById('coin').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (energy >= pwr) {
-                score += pwr;
-                energy -= pwr;
+        // النقر والاهتزاز
+        document.getElementById('coin').onclick = (e) => {
+            if (currentEnergy >= tapPower) {
+                score += tapPower;
+                currentEnergy -= tapPower;
                 
-                const c = document.getElementById('coin');
-                c.classList.add('shake-visual');
-                setTimeout(() => c.classList.remove('shake-visual'), 100);
+                const coin = document.getElementById('coin');
+                coin.classList.add('shake-visual');
+                setTimeout(()=> coin.classList.remove('shake-visual'), 100);
                 
                 updateUI();
             } else {
-                tg.showAlert("Low Energy! / طاقة منخفضة!");
+                tg.showAlert("نفدت الطاقة! انتظر قليلاً..");
             }
-        });
+        };
 
-        // شحن الطاقة تلقائياً (1 طاقة كل ثانية)
+        // زيادة الطاقة تلقائياً (1 كل ثانية)
         setInterval(() => {
-            if (energy < maxEnergy) {
-                energy = Math.min(maxEnergy, energy + 1);
+            if (currentEnergy < maxEnergy) {
+                currentEnergy = Math.min(maxEnergy, currentEnergy + 1);
                 updateUI();
             }
         }, 1000);
 
-        function buyPwr() {
-            let cost = pwr * 2000;
+        function buyTap() {
+            let cost = 2000 * tapPower;
             if (score >= cost) {
-                score -= cost; pwr++; updateUI();
+                score -= cost; tapPower++; updateUI();
             }
         }
 
-        function buyEnergyLimit() {
-            let cost = maxEnergy * 5;
-            if (score >= cost) {
-                score -= cost; maxEnergy += 500; energy = maxEnergy; updateUI();
+        function buyEnergy() {
+            let eCost = 5000 * Math.pow(2, energyLvl);
+            if (score >= eCost) {
+                score -= eCost;
+                maxEnergy += 500; // يزيد المخزن 500 مع كل تطوير
+                energyLvl++;
+                currentEnergy = maxEnergy;
+                updateUI();
             }
         }
 
-        function claimTask(id, reward, link) {
+        function doTask(reward, link) {
             window.open(link, '_blank');
             setTimeout(() => {
-                if(!tasks.includes(id)) {
-                    score += reward; tasks.push(id); updateUI();
-                    tg.showAlert("Success! +50,000 MTM");
-                }
+                score += reward;
+                taskDone = true;
+                localStorage.setItem('m_td_'+uid, 'true');
+                updateUI();
+                tg.showAlert("تمت إضافة المكافأة!");
             }, 3000);
         }
 
@@ -188,9 +193,9 @@
             el.classList.add('active');
         }
 
-        function shareRef() {
-            const link = "https://t.me/MTM_coin_bot?start=" + uid;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Join MTM!`);
+        function share() {
+            const url = "https://t.me/MTM_coin_bot?start=" + uid;
+            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=Join MTM Coin!`);
         }
 
         updateUI();
