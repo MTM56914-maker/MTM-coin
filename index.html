@@ -1,25 +1,3 @@
-const express = require('express');
-const { Telegraf } = require('telegraf');
-const fs = require('fs');
-const app = express();
-
-// --- الإعدادات ---
-const BOT_TOKEN = 'ضع_توكن_بوتك_هنا'; 
-const BOT_URL = 'https://t.me/MTM_coin_bot'; // رابط بوتك هنا
-const CHANNEL_LINK = 'https://t.me/MTM_coin';
-const bot = new Telegraf(BOT_TOKEN);
-
-app.use(express.json());
-
-// --- نظام قاعدة البيانات البسيط ---
-let db = { users: {} };
-if (fs.existsSync('db.json')) db = JSON.parse(fs.readFileSync('db.json'));
-
-function saveDB() { fs.writeFileSync('db.json', JSON.stringify(db)); }
-
-// --- الواجهة الأمامية (HTML + CSS + JS) ---
-app.get('/', (req, res) => {
-    res.send(`
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -30,47 +8,28 @@ app.get('/', (req, res) => {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --gold: #ffcc00; --bg: #0a0a12; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        
-        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); }
-        .user-info { font-size: 14px; color: #aaa; }
-        
-        .score-section { text-align: center; margin-top: 30px; }
-        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-shadow: 0 0 20px rgba(255,204,0,0.4); }
-        
-        /* منطقة النقر */
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        .header { padding: 15px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
+        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-align: center; margin-top: 20px; }
         .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        #coin { width: 250px; height: 250px; cursor: pointer; transition: transform 0.05s; user-select: none; z-index: 10; }
+        #coin { width: 220px; cursor: pointer; transition: transform 0.1s; }
         #coin:active { transform: scale(0.9); }
-
-        /* تأثيرات النقر */
-        .plus-one { position: absolute; color: var(--gold); font-size: 28px; font-weight: bold; animation: floatUp 0.7s forwards; pointer-events: none; z-index: 100; }
-        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-120px); } }
-
-        /* شريط التنقل السفلي */
-        .nav-bar { display: flex; background: #161625; padding: 15px 0; border-top: 2px solid #222; }
-        .nav-item { flex: 1; text-align: center; color: #888; font-size: 12px; cursor: pointer; }
+        .nav-bar { display: flex; background: #161625; padding: 10px 0; border-top: 1px solid #333; }
+        .nav-item { flex: 1; text-align: center; color: #888; font-size: 12px; }
         .nav-item.active { color: var(--gold); }
-        .nav-item i { font-size: 20px; display: block; margin-bottom: 5px; }
-
-        /* الصفحات المخفية */
-        .page { display: none; padding: 20px; height: 80vh; overflow-y: auto; }
+        .page { display: none; padding: 20px; }
         .page.active { display: block; }
-        .card { background: #1c1c2e; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .btn { background: var(--gold); color: black; padding: 8px 15px; border-radius: 8px; font-weight: bold; text-decoration: none; border:none;}
+        .btn { background: var(--gold); color: black; padding: 10px; border-radius: 8px; display: block; text-decoration: none; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="game-page" class="page active">
         <div class="header">
-            <div class="user-info">ID: <span id="uid">...</span></div>
-            <div class="user-info">MTM Player</div>
+            <span>ID: <span id="uid">000</span></span>
+            <span>MTM Coin</span>
         </div>
-        <div class="score-section">
-            <div id="balance">0</div>
-            <div style="color:#888">MTM COINS</div>
-        </div>
+        <div id="balance">0</div>
         <div class="game-area">
             <img src="https://i.ibb.co/L1mP94w/mtm-coin.png" id="coin" alt="MTM">
         </div>
@@ -78,130 +37,44 @@ app.get('/', (req, res) => {
 
     <div id="tasks-page" class="page">
         <h2>المهام والمكافآت</h2>
-        <div class="card">
-            <div>
-                <b>متابعة قناة البوت</b><br>
-                <small>+50,000 MTM</small>
-            </div>
-            <button class="btn" onclick="completeTask(1, 50000)">إتمام</button>
-        </div>
-        <div class="card">
-            <div>
-                <b>تسجيل دخول يومي</b><br>
-                <small>+1,000 MTM</small>
-            </div>
-            <button class="btn" onclick="completeTask('daily', 1000)">استلام</button>
+        <div style="background:#1c1c2e; padding:15px; border-radius:10px;">
+            <p>متابعة قناة MTM Coin</p>
+            <a href="https://t.me/MTM_coin" class="btn">انضم +50,000</a>
         </div>
     </div>
 
     <div id="ref-page" class="page">
-        <h2>دعوة الأصدقاء</h2>
-        <div class="card" style="flex-direction: column; text-align: center;">
-            <p>احصل على 10,000 عملة عن كل صديق!</p>
-            <input type="text" id="ref-link" readonly style="width:100%; padding:10px; background:#0a0a12; border:1px solid #333; color:white; border-radius:5px;">
-            <button class="btn" style="margin-top:10px; width:100%" onclick="copyRef()">نسخ رابط الإحالة</button>
-        </div>
+        <h2>نظام الإحالة</h2>
+        <p>رابطك الخاص:</p>
+        <input type="text" id="reflink" readonly style="width:100%; padding:10px; background:#000; color:gold; border:1px solid #333;">
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="showPage('game-page', this)"><i class="fas fa-coins"></i>نقر</div>
-        <div class="nav-item" onclick="showPage('tasks-page', this)"><i class="fas fa-tasks"></i>مهام</div>
-        <div class="nav-item" onclick="showPage('ref-page', this)"><i class="fas fa-users"></i>إحالة</div>
+        <div class="nav-item active" onclick="showP('game-page')"><i class="fas fa-coins"></i><br>نقر</div>
+        <div class="nav-item" onclick="showP('tasks-page')"><i class="fas fa-tasks"></i><br>مهام</div>
+        <div class="nav-item" onclick="showP('ref-page')"><i class="fas fa-users"></i><br>إحالة</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        const userId = tg.initDataUnsafe.user?.id || 12345;
-        document.getElementById('uid').innerText = userId;
-        document.getElementById('ref-link').value = "${BOT_URL}?start=" + userId;
+        const user = tg.initDataUnsafe.user;
+        document.getElementById('uid').innerText = user ? user.id : "Guest";
+        document.getElementById('reflink').value = "https://t.me/MTM_coin_bot?start=" + (user ? user.id : "");
 
-        let balance = 0;
+        let score = parseInt(localStorage.getItem('mtm_score')) || 0;
+        document.getElementById('balance').innerText = score.toLocaleString();
 
-        function showPage(id, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            el.classList.add('active');
-        }
-
-        const coin = document.getElementById('coin');
-        coin.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            balance += 1;
-            document.getElementById('balance').innerText = balance.toLocaleString();
-            createPlusOne(e.touches[0].pageX, e.touches[0].pageY);
-            if(balance % 20 === 0) syncData();
+        document.getElementById('coin').addEventListener('touchstart', (e) => {
+            score++;
+            document.getElementById('balance').innerText = score.toLocaleString();
+            localStorage.setItem('mtm_score', score); // حفظ النقاط في ذاكرة الهاتف
         });
 
-        function createPlusOne(x, y) {
-            const p = document.createElement('div');
-            p.className = 'plus-one';
-            p.innerText = '+1';
-            p.style.left = x + 'px'; p.style.top = y + 'px';
-            document.body.appendChild(p);
-            setTimeout(() => p.remove(), 700);
-        }
-
-        async function syncData() {
-            await fetch('/sync', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId, balance })
-            });
-        }
-
-        async function completeTask(type, reward) {
-            alert('تم التحقق وإضافة المكافأة: ' + reward);
-            balance += reward;
-            document.getElementById('balance').innerText = balance.toLocaleString();
-            syncData();
-        }
-
-        function copyRef() {
-            const input = document.getElementById('ref-link');
-            input.select();
-            document.execCommand('copy');
-            alert('تم نسخ الرابط!');
+        function showP(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
     </script>
 </body>
 </html>
-    `);
-});
-
-// --- 3. إدارة البيانات (Backend) ---
-
-// حفظ ومزامنة النقاط
-app.post('/sync', (req, res) => {
-    const { userId, balance } = req.body;
-    if (!db.users[userId]) db.users[userId] = { balance: 0, refs: 0 };
-    db.users[userId].balance = Math.max(db.users[userId].balance, balance);
-    saveDB();
-    res.json({ status: 'ok' });
-});
-
-// أوامر البوت ونظام الإحالة
-bot.start((ctx) => {
-    const userId = ctx.from.id;
-    const refId = ctx.payload; // الحصول على الـ ID من رابط الإحالة
-
-    if (!db.users[userId]) {
-        db.users[userId] = { balance: 0, refs: 0, joined: Date.now() };
-        if (refId && db.users[refId] && refId != userId) {
-            db.users[refId].balance += 10000;
-            db.users[refId].refs += 1;
-            bot.telegram.sendMessage(refId, "💰 صديق جديد انضم عبر رابطك! حصلت على 10,000 عملة.");
-        }
-    }
-    saveDB();
-
-    ctx.replyWithMarkdown(`أهلاً بك في *MTM Coin* 💰\n\n🆔 معرفك: \`${userId}\`\n📈 رصيدك محفوظ دائماً.`, {
-        reply_markup: {
-            inline_keyboard: [[{ text: "إفتح التطبيق 🎮", web_app: { url: "رابط_موقعك_هنا" } }]]
-        }
-    });
-});
-
-bot.launch();
-app.listen(3000, () => console.log('MTM Coin running...'));
