@@ -3,154 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin - Ultimate</title>
+    <title>MTM Coin - Shake Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --gold: #ffcc00; --bg: #0a0a12; --glow: rgba(255, 204, 0, 0.4); }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* تأثير الإضاءة حول العملة */
-        .glow { position: absolute; width: 220px; height: 220px; background: var(--gold); filter: blur(60px); border-radius: 50%; opacity: 0.3; animation: pulse 2s infinite; z-index: 1; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.2); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.2; } }
+        /* تأثير التوهج */
+        .glow { position: absolute; width: 220px; height: 220px; background: var(--gold); filter: blur(60px); border-radius: 50%; opacity: 0.2; animation: pulse 2s infinite; z-index: 1; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.2); opacity: 0.3; } 100% { transform: scale(1); opacity: 0.2; } }
 
-        .header { padding: 15px; background: #161625; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; z-index: 10; }
-        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-align: center; margin-top: 10px; z-index: 10; position: relative; }
+        /* أنيميشن اهتزاز العملة (بصري فقط) */
+        .shake-visual { animation: shakeAnim 0.1s ease-in-out infinite; }
+        @keyframes shakeAnim {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-1px, -2px) rotate(-1deg); }
+            40% { transform: translate(-3px, 0px) rotate(1deg); }
+            60% { transform: translate(3px, 2px) rotate(0deg); }
+            80% { transform: translate(1px, -1px) rotate(1deg); }
+            100% { transform: translate(-1px, 2px) rotate(-1deg); }
+        }
 
+        .header { padding: 15px; background: #161625; display: flex; justify-content: space-between; border-bottom: 1px solid #333; z-index: 10; }
+        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-align: center; margin-top: 10px; z-index: 10; }
         .content { flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
         .page { display: none; padding: 20px; text-align: center; }
         .page.active { display: block; }
 
         .game-area { display: flex; align-items: center; justify-content: center; height: 350px; position: relative; }
-        #coin { width: 230px; height: 230px; cursor: pointer; transition: transform 0.05s; user-select: none; -webkit-tap-highlight-color: transparent; z-index: 5; position: relative; }
-        #coin:active { transform: scale(0.92); }
-
+        #coin { width: 230px; height: 230px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; z-index: 5; position: relative; transition: transform 0.05s; }
+        
         .plus-animation { position: absolute; color: var(--gold); font-size: 32px; font-weight: bold; animation: floatUp 0.6s forwards; pointer-events: none; z-index: 100; }
         @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-120px); } }
 
-        .card { background: #1c1c2e; padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
         .nav-bar { position: fixed; bottom: 0; width: 100%; display: flex; background: #161625; border-top: 1px solid #333; padding: 10px 0; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; color: #888; cursor: pointer; font-size: 12px; }
         .nav-item.active { color: var(--gold); }
         .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
-
-        .btn { background: var(--gold); color: black; padding: 8px 16px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
-        .lang-btn { background: #333; color: white; border-radius: 5px; padding: 5px 10px; font-size: 12px; border: 1px solid #555; }
+        .btn { background: var(--gold); color: black; padding: 8px 16px; border-radius: 8px; font-weight: bold; border: none; }
     </style>
 </head>
-<body id="body-main">
+<body>
 
     <div class="header">
-        <button class="lang-btn" onclick="toggleLang()" id="lang-toggle">EN</button>
-        <span id="txt-title">MTM Coin</span>
-        <span style="font-size: 12px; color:#888">ID: <span id="uid">...</span></span>
+        <button onclick="toggleLang()" style="background:#333; color:white; border:none; border-radius:5px; padding:5px 10px;" id="lang-btn">EN</button>
+        <span>MTM Coin</span>
+        <span style="font-size:12px; color:#888">ID: <span id="uid">...</span></span>
     </div>
 
     <div class="content">
         <div id="game-page" class="page active">
-            <div style="font-size: 14px; color: var(--gold); margin-bottom: 5px;"><span id="txt-power">قوة النقرة</span>: +<span id="pwr-val">1</span></div>
+            <div style="color:var(--gold); margin-bottom:5px;"><span id="txt-pwr">قوة النقرة</span>: +<span id="pwr-val">1</span></div>
             <div id="balance">0</div>
             <div class="game-area">
                 <div class="glow"></div>
                 <img src="coin.png" id="coin" alt="MTM" onerror="this.src='https://i.ibb.co/L1mP94w/mtm-coin.png'">
             </div>
         </div>
-
+        
         <div id="tasks-page" class="page">
-            <h2 id="txt-boost-title">التطويرات</h2>
-            <div class="card">
-                <div style="text-align: right;" id="card-align">
-                    <b id="txt-boost-name">زيادة قوة النقر</b><br>
-                    <small id="txt-price">السعر</small>: <span id="boost-price">2000</span>
+            <h2 id="txt-boost">التطويرات</h2>
+            <div style="background:#1c1c2e; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; border:1px solid #333;">
+                <div style="text-align:right;">
+                    <b id="txt-upg">زيادة قوة النقر</b><br>
+                    <small id="txt-prc">السعر</small>: <span id="boost-price">2000</span>
                 </div>
-                <button class="btn" id="buy-btn" onclick="buyBoost()">شراء</button>
-            </div>
-            <h2 id="txt-task-title">المهام</h2>
-            <div class="card">
-                <div style="text-align: right;" id="card-align2">
-                    <b id="txt-task-name">متابعة القناة</b><br>
-                    <small>+50,000 MTM</small>
-                </div>
-                <div id="task-1"><button class="btn" onclick="doTask(1, 50000, 'https://t.me/MTM_coin')">انضم</button></div>
+                <button class="btn" onclick="buyBoost()" id="btn-buy">شراء</button>
             </div>
         </div>
 
         <div id="ref-page" class="page">
-            <h2 id="txt-ref-title">دعوة الأصدقاء</h2>
-            <p id="txt-ref-desc">اربح 10,000 عملة عن كل صديق!</p>
+            <h2 id="txt-ref">الإحالات</h2>
             <input type="text" id="reflink" readonly style="width:90%; padding:12px; background:#000; border:1px solid #333; color:gold; border-radius:8px; text-align:center;">
-            <button class="btn" style="width:90%; margin-top:10px;" onclick="shareRef()" id="txt-share-btn">مشاركة الرابط</button>
+            <button class="btn" style="width:90%; margin-top:10px;" onclick="shareRef()" id="btn-share">مشاركة الرابط</button>
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="showP('game-page', this)"><i class="fas fa-coins"></i><span id="nav-tap">نقر</span></div>
-        <div class="nav-item" onclick="showP('tasks-page', this)"><i class="fas fa-bolt"></i><span id="nav-boost">تطوير</span></div>
-        <div class="nav-item" onclick="showP('ref-page', this)"><i class="fas fa-users"></i><span id="nav-ref">إحالة</span></div>
+        <div class="nav-item active" onclick="showP('game-page', this)"><i class="fas fa-coins"></i><span id="n-tap">نقر</span></div>
+        <div class="nav-item" onclick="showP('tasks-page', this)"><i class="fas fa-bolt"></i><span id="n-bst">تطوير</span></div>
+        <div class="nav-item" onclick="showP('ref-page', this)"><i class="fas fa-users"></i><span id="n-ref">إحالة</span></div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        // إيقاف اهتزاز الهاتف الحقيقي
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('none');
+
         const uid = tg.initDataUnsafe.user?.id || "000";
-        
-        let score = parseInt(localStorage.getItem('mtm_score_'+uid)) || 0;
-        let clickPower = parseInt(localStorage.getItem('mtm_pwr_'+uid)) || 1;
-        let completedTasks = JSON.parse(localStorage.getItem('mtm_tsk_'+uid)) || [];
-        let currentLang = localStorage.getItem('mtm_lang_'+uid) || 'ar';
+        let score = parseInt(localStorage.getItem('mtm_s_'+uid)) || 0;
+        let clickPower = parseInt(localStorage.getItem('mtm_p_'+uid)) || 1;
+        let lang = localStorage.getItem('mtm_l_'+uid) || 'ar';
 
         const i18n = {
-            ar: { tap: "نقر", boost: "تطوير", ref: "إحالة", pwr: "قوة النقرة", buy: "شراء", tasks: "المهام", join: "انضم", share: "مشاركة الرابط", price: "السعر", msg: "تمت إضافة المكافأة!", bTitle: "التطويرات", bName: "زيادة القوة (+1)", rTitle: "دعوة الأصدقاء", rDesc: "اربح 10,000 عملة عن كل صديق!", dir: "rtl", align: "right" },
-            en: { tap: "Tap", boost: "Boost", ref: "Ref", pwr: "Tap Power", buy: "Buy", tasks: "Tasks", join: "Join", share: "Share Link", price: "Price", msg: "Bonus Added!", bTitle: "Upgrades", bName: "Tap Power (+1)", rTitle: "Invite Friends", rDesc: "Earn 10,000 for each friend!", dir: "ltr", align: "left" }
+            ar: { tap: "نقر", bst: "تطوير", ref: "إحالة", pwr: "قوة النقرة", upg: "زيادة القوة (+1)", prc: "السعر", buy: "شراء", shr: "مشاركة الرابط" },
+            en: { tap: "Tap", bst: "Boost", ref: "Ref", pwr: "Tap Power", upg: "Upgrade (+1)", prc: "Price", buy: "Buy", shr: "Share Link" }
         };
 
         function updateUI() {
-            const lang = i18n[currentLang];
-            document.getElementById('body-main').style.direction = lang.dir;
-            document.getElementById('nav-tap').innerText = lang.tap;
-            document.getElementById('nav-boost').innerText = lang.boost;
-            document.getElementById('nav-ref').innerText = lang.ref;
-            document.getElementById('txt-power').innerText = lang.pwr;
-            document.getElementById('txt-task-title').innerText = lang.tasks;
-            document.getElementById('txt-share-btn').innerText = lang.share;
-            document.getElementById('txt-price').innerText = lang.price;
-            document.getElementById('txt-boost-title').innerText = lang.bTitle;
-            document.getElementById('txt-boost-name').innerText = lang.bName;
-            document.getElementById('txt-ref-title').innerText = lang.rTitle;
-            document.getElementById('txt-ref-desc').innerText = lang.rDesc;
-            document.getElementById('card-align').style.textAlign = lang.align;
-            document.getElementById('card-align2').style.textAlign = lang.align;
-            document.getElementById('buy-btn').innerText = lang.buy;
-
+            const t = i18n[lang];
+            document.getElementById('n-tap').innerText = t.tap;
+            document.getElementById('n-bst').innerText = t.bst;
+            document.getElementById('n-ref').innerText = t.ref;
+            document.getElementById('txt-pwr').innerText = t.pwr;
+            document.getElementById('txt-upg').innerText = t.upg;
+            document.getElementById('txt-prc').innerText = t.prc;
+            document.getElementById('btn-buy').innerText = t.buy;
+            document.getElementById('btn-share').innerText = t.shr;
+            
             document.getElementById('balance').innerText = score.toLocaleString();
             document.getElementById('pwr-val').innerText = clickPower;
+            document.getElementById('boost-price').innerText = (2000 * clickPower).toLocaleString();
             document.getElementById('uid').innerText = uid;
             document.getElementById('reflink').value = "https://t.me/MTM_coin_bot?start=" + uid;
-            document.getElementById('boost-price').innerText = (2000 * clickPower).toLocaleString();
-            
-            if (completedTasks.includes(1)) document.getElementById('task-1').innerHTML = '✓';
-            
-            localStorage.setItem('mtm_score_'+uid, score);
-            localStorage.setItem('mtm_pwr_'+uid, clickPower);
-            localStorage.setItem('mtm_lang_'+uid, currentLang);
+
+            localStorage.setItem('mtm_s_'+uid, score);
+            localStorage.setItem('mtm_p_'+uid, clickPower);
+            localStorage.setItem('mtm_l_'+uid, lang);
         }
 
-        function toggleLang() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            document.getElementById('lang-toggle').innerText = currentLang === 'ar' ? 'EN' : 'AR';
-            updateUI();
-        }
-
-        document.getElementById('coin').addEventListener('touchstart', (e) => {
+        const coin = document.getElementById('coin');
+        coin.addEventListener('touchstart', (e) => {
             e.preventDefault();
             score += clickPower;
+            
+            // إضافة اهتزاز بصري للعملة
+            coin.classList.add('shake-visual');
+            setTimeout(() => coin.classList.remove('shake-visual'), 100);
+
             updateUI();
-            const el = document.createElement('div');
-            el.className = 'plus-animation';
-            el.innerText = '+' + clickPower;
-            el.style.left = e.touches[0].pageX + 'px'; el.style.top = e.touches[0].pageY + 'px';
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 600);
+            
+            // تأثير +1
+            const p = document.createElement('div');
+            p.className = 'plus-animation';
+            p.innerText = '+' + clickPower;
+            p.style.left = e.touches[0].pageX + 'px'; p.style.top = e.touches[0].pageY + 'px';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 600);
         });
 
         function buyBoost() {
@@ -159,20 +150,13 @@
                 score -= cost;
                 clickPower++;
                 updateUI();
-            } else { tg.showAlert("Low balance!"); }
+            } else { tg.showAlert("رصيدك غير كافٍ!"); }
         }
 
-        function doTask(id, reward, link) {
-            window.open(link, '_blank');
-            setTimeout(() => {
-                if (!completedTasks.includes(id)) {
-                    score += reward;
-                    completedTasks.push(id);
-                    localStorage.setItem('mtm_tsk_'+uid, JSON.stringify(completedTasks));
-                    updateUI();
-                    tg.showAlert(i18n[currentLang].msg);
-                }
-            }, 3000);
+        function toggleLang() {
+            lang = lang === 'ar' ? 'en' : 'ar';
+            document.getElementById('lang-btn').innerText = lang === 'ar' ? 'EN' : 'AR';
+            updateUI();
         }
 
         function shareRef() {
@@ -191,3 +175,4 @@
     </script>
 </body>
 </html>
+  
