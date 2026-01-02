@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin - Fix Edition</title>
+    <title>MTM Coin - Referral Fixed</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -29,7 +29,6 @@
 
         .card { background: #1c1c2e; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
         .btn { background: var(--gold); color: black; padding: 8px 14px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 12px; }
-        .btn:disabled { background: #444; color: #888; }
 
         .leader-item { background: #1c1c2e; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; border: 1px solid #333; }
         .rank-badge { width: 25px; height: 25px; background: var(--gold); color: black; border-radius: 50%; margin-left: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
@@ -70,7 +69,7 @@
                 <div style="flex-grow:1; text-align:right;">معتصم المليكي 👑</div>
                 <div style="color:var(--gold)">5.8M</div>
             </div>
-            <div class="leader-item" style="border: 1px solid #555;">
+            <div class="leader-item">
                 <div style="flex-grow:1; text-align:right;">أنت (You)</div>
                 <div id="rank-my-score" style="color:var(--gold)">0</div>
             </div>
@@ -86,14 +85,9 @@
                 <div style="text-align:right;"><b>مخزن الطاقة</b><br><small>السعر</small>: <span id="p2-cost">5000</span></div>
                 <button class="btn" onclick="buyEnergy()">تطوير</button>
             </div>
-            <hr border="0.5" color="#333">
             <div class="card">
                 <div style="text-align:right;"><b>قناة التليجرام</b><br><small>+50,000</small></div>
-                <button class="btn" id="btn-tg" onclick="doTask('tg', 50000, 'https://t.me/MTM_coin')">انضم</button>
-            </div>
-            <div class="card">
-                <div style="text-align:right;"><b>متابعة إنستجرام</b><br><small>+30,000</small></div>
-                <button class="btn" id="btn-ig" onclick="doTask('ig', 30000, 'https://www.instagram.com/coinmtm')">انضم</button>
+                <button class="btn" onclick="doTask('tg', 50000, 'https://t.me/MTM_coin')">انضم</button>
             </div>
         </div>
 
@@ -118,39 +112,30 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         const uid = tg.initDataUnsafe.user?.id || "User";
+        const BOT_USERNAME = "MTM_Coin_App_bot"; // الاسم الصحيح للبوت
 
         let score = parseInt(localStorage.getItem('m_s_'+uid)) || 0;
         let tapPower = parseInt(localStorage.getItem('m_t_'+uid)) || 1;
         let maxEnergy = parseInt(localStorage.getItem('m_me_'+uid)) || 1000;
         let energyLvl = parseInt(localStorage.getItem('m_el_'+uid)) || 0;
-        let tasks = JSON.parse(localStorage.getItem('m_ts_'+uid)) || {tg: false, ig: false};
         let currentEnergy = maxEnergy;
 
         function updateUI() {
             document.getElementById('balance').innerText = score.toLocaleString();
             document.getElementById('pwr-val').innerText = tapPower;
             document.getElementById('uid-display').innerText = uid;
-            document.getElementById('rank-my-score').innerText = score.toLocaleString();
             document.getElementById('energy-text').innerText = `⚡ ${currentEnergy} / ${maxEnergy}`;
             document.getElementById('energy-fill').style.width = (currentEnergy / maxEnergy * 100) + "%";
             document.getElementById('p1-cost').innerText = (2000 * tapPower).toLocaleString();
             document.getElementById('p2-cost').innerText = (5000 * Math.pow(2, energyLvl)).toLocaleString();
             
-            // إصلاح الرابط:
-            document.getElementById('reflink').value = "https://t.me/MTM_coin_bot?start=" + uid;
-
-            if(tasks.tg) { document.getElementById('btn-tg').innerText = "مكتملة ✓"; document.getElementById('btn-tg').disabled = true; }
-            if(tasks.ig) { document.getElementById('btn-ig').innerText = "مكتملة ✓"; document.getElementById('btn-ig').disabled = true; }
-
-            let league = "برونزي 🥉";
-            if(score >= 200000) league = "ذهبي 🏆"; else if(score >= 50000) league = "فضي 🥈";
-            document.getElementById('league-name').innerText = league;
+            // تحديث الرابط بالاسم الصحيح
+            document.getElementById('reflink').value = `https://t.me/${BOT_USERNAME}?start=${uid}`;
 
             localStorage.setItem('m_s_'+uid, score);
             localStorage.setItem('m_t_'+uid, tapPower);
             localStorage.setItem('m_me_'+uid, maxEnergy);
             localStorage.setItem('m_el_'+uid, energyLvl);
-            localStorage.setItem('m_ts_'+uid, JSON.stringify(tasks));
         }
 
         document.getElementById('coin').onclick = () => {
@@ -167,11 +152,6 @@
         function buyTap() { let cost = 2000 * tapPower; if(score >= cost) { score -= cost; tapPower++; updateUI(); } }
         function buyEnergy() { let cost = 5000 * Math.pow(2, energyLvl); if(score >= cost) { score -= cost; maxEnergy += 500; energyLvl++; currentEnergy = maxEnergy; updateUI(); } }
 
-        function doTask(type, reward, link) {
-            window.open(link, '_blank');
-            setTimeout(() => { if(!tasks[type]) { score += reward; tasks[type] = true; updateUI(); } }, 4000);
-        }
-
         function showP(id, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -179,7 +159,7 @@
         }
 
         function share() {
-            const url = "https://t.me/MTM_coin_bot?start=" + uid;
+            const url = `https://t.me/${BOT_USERNAME}?start=${uid}`;
             tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=انضم لعملة MTM وابدأ التعدين الآن!`);
         }
 
