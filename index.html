@@ -9,71 +9,118 @@
     <style>
         :root { --gold: #ffcc00; --bg: #0a0a12; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        .header { padding: 15px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
-        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-align: center; margin-top: 20px; }
+        .header { padding: 15px; display: flex; justify-content: space-between; background: #161625; border-bottom: 1px solid #333; }
+        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-align: center; margin-top: 30px; text-shadow: 0 0 15px rgba(255,204,0,0.3); }
         .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        #coin { width: 220px; cursor: pointer; transition: transform 0.1s; }
+        
+        /* هنا يتم استدعاء صورتك */
+        #coin { width: 250px; height: 250px; cursor: pointer; transition: transform 0.05s; user-select: none; -webkit-tap-highlight-color: transparent; }
         #coin:active { transform: scale(0.9); }
-        .nav-bar { display: flex; background: #161625; padding: 10px 0; border-top: 1px solid #333; }
-        .nav-item { flex: 1; text-align: center; color: #888; font-size: 12px; }
+
+        .plus-one { position: absolute; color: var(--gold); font-size: 30px; font-weight: bold; animation: floatUp 0.6s forwards; pointer-events: none; }
+        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
+
+        .nav-bar { display: flex; background: #161625; padding: 12px 0; border-top: 1px solid #333; }
+        .nav-item { flex: 1; text-align: center; color: #888; font-size: 12px; cursor: pointer; }
         .nav-item.active { color: var(--gold); }
-        .page { display: none; padding: 20px; }
+        .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
+        .page { display: none; padding: 20px; text-align: center; }
         .page.active { display: block; }
-        .btn { background: var(--gold); color: black; padding: 10px; border-radius: 8px; display: block; text-decoration: none; margin-top: 10px; font-weight: bold; }
+        .task-card { background: #1c1c2e; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: var(--gold); color: black; padding: 10px 20px; border-radius: 8px; font-weight: bold; text-decoration: none; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="game-page" class="page active">
         <div class="header">
-            <span>ID: <span id="uid">000</span></span>
+            <span>ID: <span id="uid">...</span></span>
             <span>MTM Coin</span>
         </div>
         <div id="balance">0</div>
         <div class="game-area">
-            <img src="https://i.ibb.co/L1mP94w/mtm-coin.png" id="coin" alt="MTM">
+            <img src="coin.png" id="coin" alt="MTM COIN" onerror="this.src='https://i.ibb.co/L1mP94w/mtm-coin.png'">
         </div>
     </div>
 
     <div id="tasks-page" class="page">
-        <h2>المهام والمكافآت</h2>
-        <div style="background:#1c1c2e; padding:15px; border-radius:10px;">
-            <p>متابعة قناة MTM Coin</p>
-            <a href="https://t.me/MTM_coin" class="btn">انضم +50,000</a>
+        <h2>المهام</h2>
+        <div class="task-card">
+            <div style="text-align: right;">
+                <b>متابعة قناة MTM</b><br>
+                <small>+50,000 MTM</small>
+            </div>
+            <a href="https://t.me/MTM_coin" class="btn" onclick="addBonus(50000)">انضم</a>
         </div>
     </div>
 
     <div id="ref-page" class="page">
-        <h2>نظام الإحالة</h2>
-        <p>رابطك الخاص:</p>
-        <input type="text" id="reflink" readonly style="width:100%; padding:10px; background:#000; color:gold; border:1px solid #333;">
+        <h2>الإحالات</h2>
+        <p>رابطك الخاص لدعوة الأصدقاء:</p>
+        <input type="text" id="reflink" readonly style="width:90%; padding:10px; background:#000; border:1px solid var(--gold); color:white; border-radius:8px; text-align:center;">
+        <br><br>
+        <button class="btn" onclick="copyRef()">نسخ الرابط</button>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="showP('game-page')"><i class="fas fa-coins"></i><br>نقر</div>
-        <div class="nav-item" onclick="showP('tasks-page')"><i class="fas fa-tasks"></i><br>مهام</div>
-        <div class="nav-item" onclick="showP('ref-page')"><i class="fas fa-users"></i><br>إحالة</div>
+        <div class="nav-item active" onclick="showP('game-page', this)"><i class="fas fa-coins"></i>نقر</div>
+        <div class="nav-item" onclick="showP('tasks-page', this)"><i class="fas fa-tasks"></i>مهام</div>
+        <div class="nav-item" onclick="showP('ref-page', this)"><i class="fas fa-users"></i>إحالة</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        
         const user = tg.initDataUnsafe.user;
-        document.getElementById('uid').innerText = user ? user.id : "Guest";
-        document.getElementById('reflink').value = "https://t.me/MTM_coin_bot?start=" + (user ? user.id : "");
+        const uid = user ? user.id : "Guest";
+        document.getElementById('uid').innerText = uid;
+        document.getElementById('reflink').value = "https://t.me/MTM_coin_bot?start=" + uid;
 
-        let score = parseInt(localStorage.getItem('mtm_score')) || 0;
+        let score = parseInt(localStorage.getItem('mtm_balance_' + uid)) || 0;
         document.getElementById('balance').innerText = score.toLocaleString();
 
-        document.getElementById('coin').addEventListener('touchstart', (e) => {
+        const coin = document.getElementById('coin');
+        coin.addEventListener('touchstart', (e) => {
+            e.preventDefault();
             score++;
-            document.getElementById('balance').innerText = score.toLocaleString();
-            localStorage.setItem('mtm_score', score); // حفظ النقاط في ذاكرة الهاتف
+            updateUI();
+            createPlusOne(e.touches[0].pageX, e.touches[0].pageY);
         });
 
-        function showP(id) {
+        function createPlusOne(x, y) {
+            const el = document.createElement('div');
+            el.className = 'plus-one';
+            el.innerText = '+1';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 600);
+        }
+
+        function updateUI() {
+            document.getElementById('balance').innerText = score.toLocaleString();
+            localStorage.setItem('mtm_balance_' + uid, score);
+        }
+
+        function addBonus(amount) {
+            score += amount;
+            updateUI();
+            alert("تمت إضافة المكافأة!");
+        }
+
+        function showP(id, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        function copyRef() {
+            const copyText = document.getElementById("reflink");
+            copyText.select();
+            document.execCommand("copy");
+            tg.showAlert("تم نسخ الرابط!");
         }
     </script>
 </body>
