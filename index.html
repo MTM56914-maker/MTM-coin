@@ -1,145 +1,207 @@
+const express = require('express');
+const { Telegraf } = require('telegraf');
+const fs = require('fs');
+const app = express();
+
+// --- الإعدادات ---
+const BOT_TOKEN = 'ضع_توكن_بوتك_هنا'; 
+const BOT_URL = 'https://t.me/MTM_coin_bot'; // رابط بوتك هنا
+const CHANNEL_LINK = 'https://t.me/MTM_coin';
+const bot = new Telegraf(BOT_TOKEN);
+
+app.use(express.json());
+
+// --- نظام قاعدة البيانات البسيط ---
+let db = { users: {} };
+if (fs.existsSync('db.json')) db = JSON.parse(fs.readFileSync('db.json'));
+
+function saveDB() { fs.writeFileSync('db.json', JSON.stringify(db)); }
+
+// --- الواجهة الأمامية (HTML + CSS + JS) ---
+app.get('/', (req, res) => {
+    res.send(`
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>MTM Coin Ultimate</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<style>
-body{margin:0;padding:0;background:#1c1c1c;color:white;font-family:Arial;text-align:center;overflow:hidden;}
-.profile{margin-top:10px;font-size:16px;opacity:0.9;}
-.coin{width:120px;height:120px;border-radius:50%;position:absolute;cursor:pointer;transition:transform 0.1s;}
-.score{font-size:22px;margin-top:5px;}
-button{margin:5px;padding:8px 12px;font-size:14px;border:none;border-radius:8px;cursor:pointer;color:white;box-shadow:0 0 6px #00ff00;transition:all 0.2s;}
-button:hover{transform:scale(1.05);box-shadow:0 0 10px #00ff00;}
-#upgradeBtn{background:#228b22;}#dailyBtn{background:#1e90ff;}#taskBtn{background:#ff8c00;}#adBtn{background:#ff1493;}#secretBtn{background:#8b00ff;}#instaBtn{background:#e1306c;}button:disabled{background:#555;box-shadow:none;cursor:not-allowed;}
-.task-list{margin-top:5px;font-size:12px;text-align:left;display:inline-block;}
-.task-list li.completed{color:lime;font-weight:bold;}
-.leaderboard{margin-top:10px;display:inline-block;text-align:left;}
-.leaderboard h3{text-align:center;font-size:16px;}
-.bubble{position:absolute;width:20px;height:20px;border-radius:50%;background:gold;animation:bubbleUp 1s forwards;}
-@keyframes bubbleUp{0%{opacity:1;transform:translateY(0px) scale(1);}100%{opacity:0;transform:translateY(-100px) scale(0.5);}}
-/* Bottom Bar */
-#bottomBar{position:fixed;bottom:0;left:0;width:100%;background:#222;padding:10px 0;display:flex;justify-content:space-around;align-items:center;box-shadow:0 -3px 10px #000;}
-#bottomBar button{margin:0 5px;font-size:14px;padding:6px 10px;}
-#bottomBar .scoreDisplay{color:gold;font-weight:bold;font-size:16px;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>MTM Coin</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --gold: #ffcc00; --bg: #0a0a12; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        
+        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); }
+        .user-info { font-size: 14px; color: #aaa; }
+        
+        .score-section { text-align: center; margin-top: 30px; }
+        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-shadow: 0 0 20px rgba(255,204,0,0.4); }
+        
+        /* منطقة النقر */
+        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        #coin { width: 250px; height: 250px; cursor: pointer; transition: transform 0.05s; user-select: none; z-index: 10; }
+        #coin:active { transform: scale(0.9); }
+
+        /* تأثيرات النقر */
+        .plus-one { position: absolute; color: var(--gold); font-size: 28px; font-weight: bold; animation: floatUp 0.7s forwards; pointer-events: none; z-index: 100; }
+        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-120px); } }
+
+        /* شريط التنقل السفلي */
+        .nav-bar { display: flex; background: #161625; padding: 15px 0; border-top: 2px solid #222; }
+        .nav-item { flex: 1; text-align: center; color: #888; font-size: 12px; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 5px; }
+
+        /* الصفحات المخفية */
+        .page { display: none; padding: 20px; height: 80vh; overflow-y: auto; }
+        .page.active { display: block; }
+        .card { background: #1c1c2e; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: var(--gold); color: black; padding: 8px 15px; border-radius: 8px; font-weight: bold; text-decoration: none; border:none;}
+    </style>
 </head>
 <body>
 
-<h2 id="title">اضغط على العملة</h2>
-<div class="profile" id="profile"></div>
+    <div id="game-page" class="page active">
+        <div class="header">
+            <div class="user-info">ID: <span id="uid">...</span></div>
+            <div class="user-info">MTM Player</div>
+        </div>
+        <div class="score-section">
+            <div id="balance">0</div>
+            <div style="color:#888">MTM COINS</div>
+        </div>
+        <div class="game-area">
+            <img src="https://i.ibb.co/L1mP94w/mtm-coin.png" id="coin" alt="MTM">
+        </div>
+    </div>
 
-<!-- العملة -->
-<img id="coinImg" class="coin" src="coin.png" alt="MTM Coin">
+    <div id="tasks-page" class="page">
+        <h2>المهام والمكافآت</h2>
+        <div class="card">
+            <div>
+                <b>متابعة قناة البوت</b><br>
+                <small>+50,000 MTM</small>
+            </div>
+            <button class="btn" onclick="completeTask(1, 50000)">إتمام</button>
+        </div>
+        <div class="card">
+            <div>
+                <b>تسجيل دخول يومي</b><br>
+                <small>+1,000 MTM</small>
+            </div>
+            <button class="btn" onclick="completeTask('daily', 1000)">استلام</button>
+        </div>
+    </div>
 
-<!-- Bottom Bar -->
-<div id="bottomBar">
-  <button id="upgradeBtn" onclick="upgrade()">ترقية (+1)</button>
-  <button id="dailyBtn" onclick="dailyBonus()">مكافأة اليوم</button>
-  <button id="taskBtn" onclick="taskFollowChannel()">متابعة القناة</button>
-  <span class="scoreDisplay">النقاط: <span id="score">0</span></span>
-</div>
+    <div id="ref-page" class="page">
+        <h2>دعوة الأصدقاء</h2>
+        <div class="card" style="flex-direction: column; text-align: center;">
+            <p>احصل على 10,000 عملة عن كل صديق!</p>
+            <input type="text" id="ref-link" readonly style="width:100%; padding:10px; background:#0a0a12; border:1px solid #333; color:white; border-radius:5px;">
+            <button class="btn" style="margin-top:10px; width:100%" onclick="copyRef()">نسخ رابط الإحالة</button>
+        </div>
+    </div>
 
-<h3>مهام يومية:</h3>
-<ul class="task-list">
-  <li id="task1">🔹 متابعة القناة الرسمية</li>
-  <li id="task2">🔹 مكافأة اليوم</li>
-  <li id="task3">🔹 مشاهدة إعلان</li>
-  <li id="task4">🔹 مهمة سرية</li>
-  <li id="task5">🔹 متابعة MTM Coin على إنستجرام</li>
-</ul>
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="showPage('game-page', this)"><i class="fas fa-coins"></i>نقر</div>
+        <div class="nav-item" onclick="showPage('tasks-page', this)"><i class="fas fa-tasks"></i>مهام</div>
+        <div class="nav-item" onclick="showPage('ref-page', this)"><i class="fas fa-users"></i>إحالة</div>
+    </div>
 
-<div class="leaderboard">
-  <h3>🏆 Leaderboard</h3>
-  <ol id="leaderboardList"></ol>
-</div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const userId = tg.initDataUnsafe.user?.id || 12345;
+        document.getElementById('uid').innerText = userId;
+        document.getElementById('ref-link').value = "${BOT_URL}?start=" + userId;
 
-<div class="info" id="referralInfo"></div>
+        let balance = 0;
 
-<!-- الأصوات -->
-<audio id="tapSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-<audio id="upgradeSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-<audio id="bonusSound" src="https://actions.google.com/sounds/v1/cartoon/coin_drop.ogg"></audio>
-<audio id="referralSound" src="https://actions.google.com/sounds/v1/cartoon/coins.ogg"></audio>
-<audio id="adSound" src="https://actions.google.com/sounds/v1/cartoon/arcade_game_button.ogg"></audio>
-<audio id="secretSound" src="https://actions.google.com/sounds/v1/cartoon/metal_hit.ogg"></audio>
-<audio id="instaSound" src="https://actions.google.com/sounds/v1/cartoon/bling.ogg"></audio>
+        function showPage(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+        }
 
-<script>
-// ===== Firebase Config =====
-const firebaseConfig = {apiKey:"YOUR_API_KEY",authDomain:"YOUR_PROJECT_ID.firebaseapp.com",databaseURL:"https://YOUR_PROJECT_ID.firebaseio.com",projectId:"YOUR_PROJECT_ID",storageBucket:"YOUR_PROJECT_ID.appspot.com",messagingSenderId:"SENDER_ID",appId:"APP_ID"};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+        const coin = document.getElementById('coin');
+        coin.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            balance += 1;
+            document.getElementById('balance').innerText = balance.toLocaleString();
+            createPlusOne(e.touches[0].pageX, e.touches[0].pageY);
+            if(balance % 20 === 0) syncData();
+        });
 
-// ===== بيانات تيليجرام =====
-let tgUser=null,userId="guest",userName="Guest",lang="en";
-if(window.Telegram && Telegram.WebApp){Telegram.WebApp.ready();tgUser=Telegram.WebApp.initDataUnsafe.user;if(tgUser){userId=tgUser.id;userName=tgUser.username||tgUser.first_name;lang=tgUser.language_code||"en";}}
-document.getElementById("profile").innerText="👤 "+userName+" | ID: "+userId;
-if(lang==="ar"){document.getElementById("title").innerText="اضغط على العملة";}
+        function createPlusOne(x, y) {
+            const p = document.createElement('div');
+            p.className = 'plus-one';
+            p.innerText = '+1';
+            p.style.left = x + 'px'; p.style.top = y + 'px';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 700);
+        }
 
-// ===== البيانات المحلية =====
-let scoreKey="score_"+userId,powerKey="tapPower_"+userId,lastDailyKey="daily_"+userId,
-taskFollowKey="taskFollow_"+userId,taskAdKey="taskAd_"+userId,taskSecretKey="taskSecret_"+userId,taskInstaKey="taskInsta_"+userId;
-let score=parseInt(localStorage.getItem(scoreKey))||0;
-let tapPower=parseInt(localStorage.getItem(powerKey))||1;
-document.getElementById("score").innerText=score;
+        async function syncData() {
+            await fetch('/sync', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ userId, balance })
+            });
+        }
 
-// ===== الأصوات =====
-const tapSound=document.getElementById("tapSound"),upgradeSound=document.getElementById("upgradeSound"),
-bonusSound=document.getElementById("bonusSound"),referralSound=document.getElementById("referralSound"),
-adSound=document.getElementById("adSound"),secretSound=document.getElementById("secretSound"),
-instaSound=document.getElementById("instaSound");
+        async function completeTask(type, reward) {
+            alert('تم التحقق وإضافة المكافأة: ' + reward);
+            balance += reward;
+            document.getElementById('balance').innerText = balance.toLocaleString();
+            syncData();
+        }
 
-// ===== حركة العملة عشوائية =====
-const coin = document.getElementById("coinImg");
-function moveCoinRandomly(){
-  const x = Math.random()*(window.innerWidth-120);
-  const y = Math.random()*(window.innerHeight-250);
-  coin.style.left = x+"px";
-  coin.style.top = y+"px";
-}
-setInterval(moveCoinRandomly,3000);
-moveCoinRandomly();
-
-// ===== جمع النقاط عند الضغط =====
-let lastTap=0; const tapCooldown=200;
-coin.onclick=function(){
-  let now=Date.now(); if(now-lastTap<tapCooldown)return; lastTap=now;
-  score+=tapPower; localStorage.setItem(scoreKey,score);
-  document.getElementById("score").innerText=score;
-  tapSound.play(); animateBubble(); updateLeaderboard();
-}
-
-// ===== ترقية القوة =====
-const upgradeCost=20;
-function upgrade(){if(score>=upgradeCost){score-=upgradeCost;tapPower++;localStorage.setItem(scoreKey,score);localStorage.setItem(powerKey,tapPower);document.getElementById("score").innerText=score;updateUpgradeBtn();upgradeSound.play();updateLeaderboard();}}
-function updateUpgradeBtn(){document.getElementById("upgradeBtn").disabled=(score<upgradeCost);}
-updateUpgradeBtn();
-
-// ===== مكافأة اليوم =====
-function dailyBonus(){let today=new Date().toDateString();let last=localStorage.getItem(lastDailyKey);if(last===today){alert(lang==="ar"?"لقد حصلت على مكافأة اليوم بالفعل!":"Daily bonus already claimed!");return;}let bonus=50;score+=bonus;localStorage.setItem(scoreKey,score);localStorage.setItem(lastDailyKey,today);document.getElementById("score").innerText=score;alert(lang==="ar"?`تمت إضافة ${bonus} نقطة!`:`${bonus} points added!`);markTaskCompleted("task2");bonusSound.play();updateLeaderboard();}
-
-// ===== باقي المهام =====
-function taskFollowChannel(){if(localStorage.getItem(taskFollowKey)){alert(lang==="ar"?"لقد أتممت مهمة متابعة القناة مسبقًا!":"Task already completed!");return;}let bonus=30;score+=bonus;localStorage.setItem(scoreKey,score);localStorage.setItem(taskFollowKey,true);document.getElementById("score").innerText=score;alert(lang==="ar"?`تمت إضافة ${bonus} نقطة لمتابعة القناة!`:`${bonus} points for following the channel!`);markTaskCompleted("task1");bonusSound.play();window.open("https://t.me/MTM_coin","_blank");updateLeaderboard();}
-function taskWatchAd(){if(localStorage.getItem(taskAdKey)){alert(lang==="ar"?"لقد شاهدت الإعلان مسبقًا اليوم!":"Ad task already completed!");return;}let bonus=20;score+=bonus;localStorage.setItem(scoreKey,score);localStorage.setItem(taskAdKey,true);document.getElementById("score").innerText=score;alert(lang==="ar"?`تمت إضافة ${bonus} نقطة لمشاهدة الإعلان!`:`${bonus} points for watching ad!`);markTaskCompleted("task3");adSound.play();updateLeaderboard();}
-function taskSecret(){if(localStorage.getItem(taskSecretKey)){alert(lang==="ar"?"لقد أتممت المهمة السرية مسبقًا!":"Secret task already completed!");return;}let bonus=40;score+=bonus;localStorage.setItem(scoreKey,score);localStorage.setItem(taskSecretKey,true);document.getElementById("score").innerText=score;alert(lang==="ar"?`تمت إضافة ${bonus} نقطة للمهمة السرية!`:`${bonus} points for secret task!`);markTaskCompleted("task4");secretSound.play();updateLeaderboard();}
-function taskFollowInstagram(){if(localStorage.getItem(taskInstaKey)){alert(lang==="ar"?"لقد أتممت مهمة متابعة الإنستجرام مسبقًا!":"Instagram task already completed!");return;}let bonus=35;score+=bonus;localStorage.setItem(scoreKey,score);localStorage.setItem(taskInstaKey,true);document.getElementById("score").innerText = score;alert(lang==="ar"?`تمت إضافة ${bonus} نقطة لمتابعة MTM Coin على إنستجرام!`:`${bonus} points for following MTM Coin on Instagram!`);markTaskCompleted("task5");instaSound.play();window.open("https://www.instagram.com/coinmtm?igsh=MWQ1NHhlNXYyc29kZA==","_blank");updateLeaderboard();}
-
-// ===== تمييز المهام المكتملة =====
-function markTaskCompleted(taskId){document.getElementById(taskId).classList.add("completed");}
-
-// ===== فقاعات عند الضغط =====
-function animateBubble(){let bubble=document.createElement("div");bubble.className="bubble";bubble.style.left=(parseInt(coin.style.left)+50)+"px";bubble.style.top=(parseInt(coin.style.top)+50)+"px";document.body.appendChild(bubble);setTimeout(()=>{document.body.removeChild(bubble);},1000);}
-
-// ===== إحالات =====
-let urlParams=new URLSearchParams(window.location.search);let ref=urlParams.get('ref');
-if(ref&&ref!==String(userId)){let refKey="score_"+ref;let refScore=parseInt(localStorage.getItem(refKey))||0;let bonus=20;localStorage.setItem(refKey,refScore+bonus);referralSound.play();document.getElementById("referralInfo").innerText=lang==="ar"?`🎁 تم منح صاحب الرابط ${bonus} نقطة!`:`🎁 Referral bonus added: ${bonus} points!`;}
-document.getElementById("referralInfo").innerHTML+=`<br>${lang==="ar"?"رابط إحالتك":"Your referral link"}: ${window.location.href}?ref=${userId}`;
-
-// ===== Leaderboard =====
-function updateLeaderboard(){db.ref("scores/"+userId).set({name:userName,score:score});db.ref("scores").orderByChild("score").limitToLast(10).once("value",snap=>{let list=document.getElementById("leaderboardList");list.innerHTML="";let arr=[];snap.forEach(s=>{arr.push({name:s.val().name,score:s.val().score});});arr.sort((a,b)=>b.score-a.score);arr.forEach(e=>{let li=document.createElement("li");li.textContent=`${e.name}: ${e.score}`;list.appendChild(li);});});}
-updateLeaderboard();
-</script>
+        function copyRef() {
+            const input = document.getElementById('ref-link');
+            input.select();
+            document.execCommand('copy');
+            alert('تم نسخ الرابط!');
+        }
+    </script>
 </body>
 </html>
+    `);
+});
+
+// --- 3. إدارة البيانات (Backend) ---
+
+// حفظ ومزامنة النقاط
+app.post('/sync', (req, res) => {
+    const { userId, balance } = req.body;
+    if (!db.users[userId]) db.users[userId] = { balance: 0, refs: 0 };
+    db.users[userId].balance = Math.max(db.users[userId].balance, balance);
+    saveDB();
+    res.json({ status: 'ok' });
+});
+
+// أوامر البوت ونظام الإحالة
+bot.start((ctx) => {
+    const userId = ctx.from.id;
+    const refId = ctx.payload; // الحصول على الـ ID من رابط الإحالة
+
+    if (!db.users[userId]) {
+        db.users[userId] = { balance: 0, refs: 0, joined: Date.now() };
+        if (refId && db.users[refId] && refId != userId) {
+            db.users[refId].balance += 10000;
+            db.users[refId].refs += 1;
+            bot.telegram.sendMessage(refId, "💰 صديق جديد انضم عبر رابطك! حصلت على 10,000 عملة.");
+        }
+    }
+    saveDB();
+
+    ctx.replyWithMarkdown(`أهلاً بك في *MTM Coin* 💰\n\n🆔 معرفك: \`${userId}\`\n📈 رصيدك محفوظ دائماً.`, {
+        reply_markup: {
+            inline_keyboard: [[{ text: "إفتح التطبيق 🎮", web_app: { url: "رابط_موقعك_هنا" } }]]
+        }
+    });
+});
+
+bot.launch();
+app.listen(3000, () => console.log('MTM Coin running...'));
