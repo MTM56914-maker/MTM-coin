@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin - Legend Edition</title>
+    <title>MTM Coin - Ultimate Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -20,6 +20,8 @@
             background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
             margin: 0; overflow: hidden; -webkit-user-select: none; user-select: none;
             touch-action: manipulation; direction: rtl;
+            /* حل مشكلة المربع الأزرق */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .header {
@@ -27,32 +29,35 @@
             display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;
         }
 
-        #balance-container { text-align: center; margin: 25px 0; }
+        #balance-container { text-align: center; margin: 20px 0; }
         #balance {
             font-size: 45px; font-weight: 900; background: var(--gold);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255,204,0,0.2));
         }
 
-        .coin-wrapper { position: relative; display: flex; justify-content: center; align-items: center; height: 260px; }
+        .coin-wrapper { position: relative; display: flex; justify-content: center; align-items: center; height: 240px; }
         #coin {
-            width: 210px; height: 210px; cursor: pointer;
+            width: 200px; height: 200px; cursor: pointer;
             transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.3));
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
         }
         #coin:active { transform: scale(0.92); }
 
         .tap-effect {
-            position: absolute; color: #ffcc00; font-size: 26px; font-weight: bold;
-            pointer-events: none; animation: floatUp 0.7s ease-out forwards;
+            position: absolute; color: #ffcc00; font-size: 28px; font-weight: bold;
+            pointer-events: none; animation: floatUp 0.7s ease-out forwards; z-index: 100;
         }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-130px); } }
 
-        .energy-bar-container { width: 85%; height: 10px; background: #222; border-radius: 10px; margin: 15px auto; overflow: hidden; }
+        .energy-bar-container { width: 85%; height: 10px; background: #222; border-radius: 10px; margin: 10px auto; overflow: hidden; border: 1px solid #333; }
         #energy-fill { height: 100%; width: 100%; background: var(--gold); transition: width 0.3s; }
 
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s; height: 70vh; overflow-y: auto; padding-bottom: 100px; }
+        .page { display: none; padding: 20px; animation: fadeIn 0.3s; height: 75vh; overflow-y: auto; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .card {
             background: var(--card-bg); padding: 15px; border-radius: 15px;
@@ -63,19 +68,19 @@
 
         .btn {
             background: var(--gold); color: #000; padding: 8px 16px; border-radius: 10px;
-            font-weight: 800; border: none; cursor: pointer;
+            font-weight: 800; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
-        .btn:disabled { background: #444; color: #888; }
+        .btn:disabled { background: #444; color: #888; cursor: not-allowed; }
 
         .nav-bar {
             position: fixed; bottom: 15px; left: 5%; width: 90%;
             display: flex; background: rgba(22, 22, 37, 0.95); backdrop-filter: blur(15px);
             border-radius: 20px; padding: 10px 0; border: 1px solid #333; z-index: 1000;
         }
-        .nav-item { flex: 1; text-align: center; color: #666; font-size: 12px; }
-        .nav-item.active { color: var(--accent); }
+        .nav-item { flex: 1; text-align: center; color: #666; font-size: 11px; -webkit-tap-highlight-color: transparent; }
+        .nav-item.active { color: var(--accent); transform: translateY(-3px); transition: 0.3s; }
 
-        #lang-btn { background: #222; color: gold; border: 1px solid gold; padding: 4px 10px; border-radius: 8px; font-size: 12px; }
+        #lang-btn { background: #222; color: gold; border: 1px solid gold; padding: 4px 10px; border-radius: 8px; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -98,6 +103,15 @@
             <div style="margin-bottom: 5px;"><span id="energy-label">الطاقة</span>: <span id="energy-txt">1000/1000</span></div>
             <div class="energy-bar-container"><div id="energy-fill"></div></div>
         </div>
+        
+        <div class="card" style="margin-top:20px; background: rgba(255,204,0,0.05); border-color: gold;">
+            <i class="fas fa-gift"></i>
+            <div class="info">
+                <b id="daily-reward-title">هدية يومية</b><br>
+                <small id="daily-reward-desc">احصل على 5,000 كوين</small>
+            </div>
+            <button class="btn" id="daily-btn" onclick="claimDaily()">Claim</button>
+        </div>
     </div>
 
     <div id="boost-page" class="page">
@@ -114,7 +128,7 @@
             <i class="fas fa-battery-full"></i>
             <div class="info">
                 <b id="energy-boost-name">مخزون الطاقة</b><br>
-                <small id="energy-boost-desc">زيادة السعة القصوى للطاقة</small>
+                <small id="energy-boost-desc">زيادة السعة القصوى</small>
             </div>
             <button class="btn" onclick="buyUpgrade('energy')"><span id="energy-price">1000</span></button>
         </div>
@@ -147,22 +161,19 @@
 </div>
 
 <script>
-// --- إعدادات Firebase ---
+// --- تهيئة Firebase ---
 const firebaseConfig = { apiKey: "AIzaSyA1Nnh0P7RdWH7EhBnaGkk6QUNeWRXPKt8", databaseURL: "https://mtm-coin-a52d9-default-rtdb.firebaseio.com" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// --- البيانات الأساسية ---
+// --- البيانات والحالة ---
 const uid = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "12345";
 let userData = {
-    score: 0,
-    energy: 1000,
-    maxEnergy: 1000,
-    tapPower: 1,
-    upgrades: { tap: 0, energy: 0 },
-    tasks: { tg: false }
+    score: 0, energy: 1000, maxEnergy: 1000, tapPower: 1,
+    upgrades: { tap: 0, energy: 0 }, tasks: { tg: false },
+    lastClaim: 0
 };
 
 let currentLang = localStorage.getItem('lang') || 'ar';
@@ -171,16 +182,16 @@ const langData = {
     ar: {
         balanceLabel: "الرصيد الكلي", energyLabel: "الطاقة", boostTitle: "التطويرات ⚡",
         tapName: "قوة النقرة", tapDesc: "زيادة الربح من كل نقرة", energyName: "مخزون الطاقة",
-        energyDesc: "زيادة السعة القصوى", tasksTitle: "المهام 🚀", refTitle: "دعوة الأصدقاء 👥",
+        energyDesc: "زيادة السعة القصوى", tasksTitle: "المهام 🚀", refTitle: "الأصدقاء 👥",
         refDesc: "اربح 50,000 عن كل صديق!", navTap: "نقر", navBoost: "تطوير", navTask: "مهام", navRef: "إحالة",
-        shareBtn: "ارسل الرابط 🔗"
+        shareBtn: "ارسل الرابط 🔗", dailyTitle: "هدية يومية", dailyDesc: "احصل على 5,000 كوين", claimed: "تم الاستلام"
     },
     en: {
         balanceLabel: "TOTAL BALANCE", energyLabel: "Energy", boostTitle: "Upgrades ⚡",
-        tapName: "Multitap", tapDesc: "Increase profit per tap", energyName: "Energy Limit",
-        energyDesc: "Increase max energy", tasksTitle: "Tasks 🚀", refTitle: "Invite Friends 👥",
+        tapName: "Multitap", tapDesc: "More coins per tap", energyName: "Energy Limit",
+        energyDesc: "Increase max capacity", tasksTitle: "Tasks 🚀", refTitle: "Friends 👥",
         refDesc: "Earn 50,000 per friend!", navTap: "Tap", navBoost: "Boost", navTask: "Tasks", navRef: "Friends",
-        shareBtn: "Share Link 🔗"
+        shareBtn: "Share Link 🔗", dailyTitle: "Daily Gift", dailyDesc: "Get 5,000 coins", claimed: "Claimed"
     }
 };
 
@@ -193,7 +204,6 @@ function toggleLang() {
 function updateUI() {
     const l = langData[currentLang];
     document.body.style.direction = currentLang === 'ar' ? 'rtl' : 'ltr';
-    
     document.getElementById('balance-label').innerText = l.balanceLabel;
     document.getElementById('energy-label').innerText = l.energyLabel;
     document.getElementById('boost-title').innerText = l.boostTitle;
@@ -209,16 +219,29 @@ function updateUI() {
     document.getElementById('nav-task').innerText = l.navTask;
     document.getElementById('nav-ref').innerText = l.navRef;
     document.getElementById('ref-btn-share').innerText = l.shareBtn;
+    document.getElementById('daily-reward-title').innerText = l.dailyTitle;
+    document.getElementById('daily-reward-desc').innerText = l.dailyDesc;
 
-    // تحديث الأرقام
-    document.getElementById('balance').innerText = userData.score.toLocaleString();
+    document.getElementById('balance').innerText = Math.floor(userData.score).toLocaleString();
     document.getElementById('energy-txt').innerText = `${Math.floor(userData.energy)}/${userData.maxEnergy}`;
     document.getElementById('energy-fill').style.width = `${(userData.energy/userData.maxEnergy)*100}%`;
     document.getElementById('tap-price').innerText = (500 * (userData.upgrades.tap + 1)).toLocaleString();
     document.getElementById('energy-price').innerText = (1000 * (userData.upgrades.energy + 1)).toLocaleString();
+
+    // فحص المكافأة اليومية
+    const now = Date.now();
+    const canClaim = now - userData.lastClaim > 24 * 60 * 60 * 1000;
+    const btn = document.getElementById('daily-btn');
+    if(!canClaim) {
+        btn.innerText = l.claimed;
+        btn.disabled = true;
+    } else {
+        btn.innerText = currentLang === 'ar' ? 'استلام' : 'Claim';
+        btn.disabled = false;
+    }
 }
 
-// --- منطق اللعبة ---
+// --- العمليات ---
 function handleTap(event) {
     if(userData.energy < userData.tapPower) return;
     if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -226,7 +249,6 @@ function handleTap(event) {
     userData.score += userData.tapPower;
     userData.energy -= userData.tapPower;
     updateUI();
-
     createTapEffect(event);
     saveData();
 }
@@ -243,9 +265,16 @@ function createTapEffect(event) {
     setTimeout(() => effect.remove(), 700);
 }
 
+function claimDaily() {
+    userData.score += 5000;
+    userData.lastClaim = Date.now();
+    saveData();
+    updateUI();
+    alert(currentLang === 'ar' ? 'مبروك! استلمت 5,000' : 'Congrats! You got 5,000');
+}
+
 function buyUpgrade(type) {
     let price = type === 'tap' ? 500 * (userData.upgrades.tap + 1) : 1000 * (userData.upgrades.energy + 1);
-    
     if(userData.score >= price) {
         userData.score -= price;
         if(type === 'tap') {
@@ -258,32 +287,23 @@ function buyUpgrade(type) {
         }
         updateUI();
         saveData();
-    } else {
-        alert(currentLang === 'ar' ? 'رصيدك غير كافٍ!' : 'Not enough balance!');
     }
 }
 
-// استرجاع الطاقة
 setInterval(() => {
     if(userData.energy < userData.maxEnergy) {
-        userData.energy = Math.min(userData.maxEnergy, userData.energy + 2);
+        userData.energy = Math.min(userData.maxEnergy, userData.energy + 1);
         updateUI();
     }
 }, 1000);
 
-function saveData() {
-    db.ref('users/'+uid).update(userData);
-}
+function saveData() { db.ref('users/'+uid).update(userData); }
 
 function init() {
     db.ref('users/'+uid).on('value', (s) => {
         const d = s.val();
-        if(d) {
-            userData = {...userData, ...d};
-            updateUI();
-        } else {
-            saveData();
-        }
+        if(d) { userData = {...userData, ...d}; updateUI(); }
+        else { saveData(); }
     });
     document.getElementById('reflink').value = `https://t.me/MTM_Coin_App_bot?start=${uid}`;
 }
@@ -295,21 +315,9 @@ function showP(id, el) {
     el.classList.add('active');
 }
 
-function doTask(t, r, l) {
-    tg.openLink(l);
-    setTimeout(() => {
-        if(!userData.tasks[t]) {
-            userData.score += r;
-            userData.tasks[t] = true;
-            saveData();
-            alert('Claimed!');
-        }
-    }, 3000);
-}
-
 function shareRef() {
     const l = `https://t.me/MTM_Coin_App_bot?start=${uid}`;
-    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(l)}&text=Join MTM Coin!`);
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(l)}&text=Join MTM!`);
 }
 
 init();
