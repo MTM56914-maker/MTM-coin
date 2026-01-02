@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MTM Coin - Ranking System</title>
+    <title>MTM Coin Ultimate</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -11,135 +11,181 @@
     <style>
         :root { --gold: #ffcc00; --bg: #0a0a12; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; -webkit-user-select: none; user-select: none; touch-action: manipulation; direction: rtl; }
-        .header { padding: 10px 15px; background: #161625; display: flex; justify-content: space-between; border-bottom: 1px solid #333; }
-        #balance { font-size: 42px; font-weight: bold; color: var(--gold); text-align: center; margin: 15px 0; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        .header { padding: 10px 15px; background: #161625; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        #balance { font-size: 40px; font-weight: bold; color: var(--gold); text-align: center; margin: 15px 0; }
         .content { height: 75vh; overflow-y: auto; padding-bottom: 100px; }
         .page { display: none; padding: 20px; text-align: center; }
         .page.active { display: block; }
+        .coin-area { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 280px; }
         #coin { width: 200px; cursor: pointer; transition: transform 0.05s; }
-        #coin:active { transform: scale(0.95); }
-        .card { background: #1c1c2e; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
-        .btn { background: var(--gold); color: black; padding: 8px 16px; border-radius: 8px; font-weight: bold; border: none; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; display: flex; background: #161625; padding: 10px 0; border-top: 1px solid #333; }
-        .nav-item { flex: 1; text-align: center; color: #888; font-size: 11px; cursor: pointer; }
+        #coin:active { transform: scale(0.92); }
+        .energy-bar { width: 80%; background: #222; height: 10px; border-radius: 10px; margin: 10px auto; overflow: hidden; border: 1px solid #444; }
+        #energy-fill { background: var(--gold); height: 100%; width: 100%; transition: 0.2s; }
+        .card { background: #1c1c2e; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .btn { background: var(--gold); color: black; padding: 8px 15px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 12px; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; display: flex; background: #161625; border-top: 1px solid #333; padding: 10px 0; }
+        .nav-item { flex: 1; text-align: center; color: #888; font-size: 11px; }
         .nav-item.active { color: var(--gold); }
-        .rank-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; }
-        .rank-num { color: var(--gold); font-weight: bold; width: 30px; }
+        .rank-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; font-size: 14px; }
+        #lang-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <span id="level-name" style="color:var(--gold); font-weight:bold;">جاري التحميل...</span>
-        <span id="uid-display" style="color:#888; font-size:10px;">ID: ...</span>
-    </div>
+<div id="lang-overlay">
+    <h3 id="l-title">اختر اللغة / Select Language</h3>
+    <button class="btn" style="width:160px" onclick="setLang('ar')">العربية</button>
+    <button class="btn" style="width:160px" onclick="setLang('en')">English</button>
+</div>
 
-    <div class="content">
-        <div id="game-page" class="page active">
-            <div id="balance">0</div>
+<div class="header">
+    <span id="level-txt" style="color:var(--gold); font-weight:bold;">...</span>
+    <span id="uid-display" style="color:#888; font-size:10px;">ID: ...</span>
+</div>
+
+<div class="content">
+    <div id="game-page" class="page active">
+        <div id="balance">0</div>
+        <div class="coin-area">
+            <div style="font-size:12px; color:var(--gold); margin-bottom:5px;">+<span id="tap-val">1</span></div>
             <img src="coin.png" id="coin" onclick="handleTap()" onerror="this.src='https://i.ibb.co/L1mP94w/mtm-coin.png'">
-            <div style="margin-top:20px;">⚡ <span id="energy-txt">1000/1000</span></div>
-        </div>
-
-        <div id="leader-page" class="page">
-            <h3>قائمة المتصدرين 🏆</h3>
-            <div id="leaderboard-list" style="background: #161625; border-radius: 15px; padding: 10px;">
-                </div>
-        </div>
-
-        <div id="ref-page" class="page">
-            <h3>الإحالات 👥</h3>
-            <div class="card" style="flex-direction:column; gap:10px">
-                <span>أصدقاؤك: <b id="ref-count">0</b></span>
-                <input type="text" id="reflink" readonly style="width:100%; padding:10px; background:#000; color:gold; border:1px solid #444; text-align:center; border-radius:8px;">
-                <button class="btn" style="width:100%" onclick="shareRef()">ارسل الرابط 🔗</button>
-            </div>
+            <div style="margin-top:15px;">⚡ <span id="energy-txt">1000/1000</span></div>
+            <div class="energy-bar"><div id="energy-fill"></div></div>
         </div>
     </div>
 
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="showP('game-page', this)"><i class="fas fa-coins"></i><br>نقر</div>
-        <div class="nav-item" onclick="showP('leader-page', this)"><i class="fas fa-trophy"></i><br>ترتيب</div>
-        <div class="nav-item" onclick="showP('ref-page', this)"><i class="fas fa-users"></i><br>إحالة</div>
+    <div id="leader-page" class="page">
+        <h3 id="h-rank">المتصدرون 🏆</h3>
+        <div id="leader-list" style="background:#161625; border-radius:12px; padding:5px;"></div>
     </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1Nnh0P7RdWH7EhBnaGkk6QUNeWRXPKt8",
-            databaseURL: "https://mtm-coin-a52d9-default-rtdb.firebaseio.com"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    <div id="tasks-page" class="page">
+        <h3 id="h-up">التطويرات</h3>
+        <div class="card"><div><b id="p1-n">قوة النقر</b><br><small id="p1-c">2000</small></div><button class="btn" onclick="upgrade('tap')">UP</button></div>
+        <div class="card"><div><b id="p2-n">مخزن الطاقة</b><br><small id="p2-c">5000</small></div><button class="btn" onclick="upgrade('energy')">UP</button></div>
+        <h3 id="h-task">المهام</h3>
+        <div class="card"><div><b>Telegram</b><br><small>+50,000</small></div><button class="btn" id="btn-tg" onclick="doTask('tg',50000,'https://t.me/MTM_coin')">Go</button></div>
+        <div class="card"><div><b>Instagram</b><br><small>+30,000</small></div><button class="btn" id="btn-ig" onclick="doTask('ig',30000,'https://www.instagram.com/coinmtm')">Go</button></div>
+    </div>
 
-        const tg = window.Telegram.WebApp;
-        const user = tg.initDataUnsafe.user;
-        const uid = user ? user.id : "12345";
-        const username = user ? (user.username || user.first_name) : "لاعب مجهول";
+    <div id="ref-page" class="page">
+        <h3 id="h-ref">الإحالات 👥</h3>
+        <div class="card" style="flex-direction:column; gap:10px">
+            <span id="f-h">الأصدقاء: <b id="ref-count">0</b></span>
+            <input type="text" id="reflink" readonly style="width:100%; padding:10px; background:#000; color:gold; border:1px solid #444; text-align:center; border-radius:8px;">
+            <button class="btn" id="s-h" style="width:100%" onclick="shareRef()">ارسل الرابط 🔗</button>
+        </div>
+    </div>
+</div>
 
-        let score = 0;
+<div class="nav-bar">
+    <div class="nav-item active" onclick="showP('game-page',this)"><i class="fas fa-coins"></i><br><span id="n-1">نقر</span></div>
+    <div class="nav-item" onclick="showP('leader-page',this)"><i class="fas fa-trophy"></i><br><span id="n-2">ترتيب</span></div>
+    <div class="nav-item" onclick="showP('tasks-page',this)"><i class="fas fa-bolt"></i><br><span id="n-3">مهام</span></div>
+    <div class="nav-item" onclick="showP('ref-page',this)"><i class="fas fa-users"></i><br><span id="n-4">إحالة</span></div>
+</div>
 
-        // --- نظام المستويات ---
-        function getLevel(s) {
-            if (s < 10000) return "برونزي 🥉";
-            if (s < 50000) return "فضي 🥈";
-            if (s < 200000) return "ذهبي 🥇";
-            if (s < 1000000) return "ماسي 💎";
-            return "أسطوري 👑";
-        }
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyA1Nnh0P7RdWH7EhBnaGkk6QUNeWRXPKt8",
+    databaseURL: "https://mtm-coin-a52d9-default-rtdb.firebaseio.com"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const tg = window.Telegram.WebApp;
+const uid = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "12345";
+const uname = tg.initDataUnsafe.user ? (tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name) : "Player";
+const refBy = tg.initDataUnsafe.start_param;
 
-        // --- جلب الترتيب الحقيقي ---
-        function updateLeaderboard() {
-            db.ref('users').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
-                let listHTML = "";
-                let players = [];
-                snapshot.forEach((child) => {
-                    players.unshift({ name: child.val().username || "لاعب", score: child.val().score });
-                });
-                players.forEach((p, index) => {
-                    listHTML += `
-                        <div class="rank-item">
-                            <span><span class="rank-num">${index + 1}.</span> ${p.name}</span>
-                            <span style="color:var(--gold)">${p.score.toLocaleString()}</span>
-                        </div>`;
-                });
-                document.getElementById('leaderboard-list').innerHTML = listHTML;
-            });
-        }
+let score=0, refs=0, tapP=1, energyL=0, energy=1000, maxE=1000, tasks={tg:false, ig:false}, curLang=localStorage.getItem('lang');
 
-        // --- حفظ البيانات ---
-        function handleTap() {
-            score++;
-            document.getElementById('balance').innerText = score.toLocaleString();
-            document.getElementById('level-name').innerText = getLevel(score);
-            db.ref('users/' + uid).update({ score: score, username: username });
-        }
+const dictionary = {
+    ar: {n1:"نقر", n2:"ترتيب", n3:"مهام", n4:"إحالة", hRank:"المتصدرون 🏆", hUp:"التطويرات", hTask:"المهام", hRef:"الإحالات", fh:"الأصدقاء: ", sh:"ارسل الرابط 🔗", p1:"قوة النقر", p2:"مخزن الطاقة", b1:"برونزي 🥉", b2:"فضي 🥈", b3:"ذهبي 🥇", b4:"ماسي 💎", b5:"أسطوري 👑"},
+    en: {n1:"Tap", n2:"Rank", n3:"Tasks", n4:"Ref", hRank:"Leaderboard 🏆", hUp:"Upgrades", hTask:"Tasks", hRef:"Referrals", fh:"Friends: ", sh:"Share Link 🔗", p1:"Tap Power", p2:"Energy Cap", b1:"Bronze 🥉", b2:"Silver 🥈", b3:"Gold 🥇", b4:"Diamond 💎", b5:"Legend 👑"}
+};
 
-        // --- تهيئة المستخدم ---
-        db.ref('users/' + uid).on('value', (s) => {
-            if (s.exists()) {
-                score = s.val().score || 0;
-                document.getElementById('balance').innerText = score.toLocaleString();
-                document.getElementById('level-name').innerText = getLevel(score);
-                document.getElementById('ref-count').innerText = s.val().refs || 0;
-                document.getElementById('uid-display').innerText = "ID: " + uid;
-                document.getElementById('reflink').value = `https://t.me/MTM_Coin_App_bot?start=${uid}`;
-            } else {
-                db.ref('users/' + uid).set({ score: 0, refs: 0, username: username });
+function setLang(l) { curLang=l; localStorage.setItem('lang',l); document.getElementById('lang-overlay').style.display='none'; document.body.style.direction=(l==='ar'?'rtl':'ltr'); updateUI(); }
+if(curLang) document.getElementById('lang-overlay').style.display='none';
+
+function getLvlName(s) {
+    const d = dictionary[curLang||'ar'];
+    if(s<10000) return d.b1; if(s<50000) return d.b2; if(s<200000) return d.b3; if(s<1000000) return d.b4; return d.b5;
+}
+
+function updateUI() {
+    if(!curLang) return;
+    const d = dictionary[curLang];
+    document.getElementById('balance').innerText = score.toLocaleString();
+    document.getElementById('tap-val').innerText = tapP;
+    document.getElementById('level-txt').innerText = getLvlName(score);
+    document.getElementById('energy-txt').innerText = `${energy}/${maxE}`;
+    document.getElementById('energy-fill').style.width = (energy/maxE*100)+"%";
+    document.getElementById('ref-count').innerText = refs;
+    document.getElementById('reflink').value = `https://t.me/MTM_Coin_App_bot?start=${uid}`;
+    document.getElementById('n-1').innerText=d.n1; document.getElementById('n-2').innerText=d.n2;
+    document.getElementById('n-3').innerText=d.n3; document.getElementById('n-4').innerText=d.n4;
+    document.getElementById('h-rank').innerText=d.hRank; document.getElementById('h-up').innerText=d.hUp;
+    document.getElementById('h-task').innerText=d.hTask; document.getElementById('h-ref').innerText=d.hRef;
+    document.getElementById('f-h').innerHTML=`${d.fh} <b>${refs}</b>`; document.getElementById('s-h').innerText=d.sh;
+    document.getElementById('p1-n').innerText=d.p1; document.getElementById('p2-n').innerText=d.p2;
+    document.getElementById('p1-c').innerText=`Price: ${tapP*2000}`; document.getElementById('p2-c').innerText=`Price: ${Math.pow(2,energyL)*5000}`;
+}
+
+function init() {
+    db.ref('users/'+uid).on('value', (s) => {
+        const d = s.val();
+        if(d) {
+            score=d.score; refs=d.refs||0; tapP=d.tapP||1; energyL=d.energyL||0; tasks=d.tasks||{tg:false,ig:false};
+            maxE = 1000 + (energyL*500); updateUI();
+        } else {
+            if(refBy && refBy != uid) {
+                db.ref('users/'+refBy).transaction(p => { if(p){p.score=(p.score||0)+50000; p.refs=(p.refs||0)+1;} return p; });
             }
-        });
-
-        function showP(id, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active'); el.classList.add('active');
+            db.ref('users/'+uid).set({score:0, refs:0, tapP:1, energyL:0, username:uname});
         }
+    });
+    // ترتيب المتصدرين
+    db.ref('users').orderByChild('score').limitToLast(10).on('value', (snap) => {
+        let h = ""; let arr = []; snap.forEach(c => { arr.unshift({n:c.val().username, s:c.val().score}) });
+        arr.forEach((p,i) => { h+=`<div class="rank-item"><span>${i+1}. ${p.n}</span><b style="color:var(--gold)">${p.s.toLocaleString()}</b></div>` });
+        document.getElementById('leader-list').innerHTML = h;
+    });
+}
 
-        function shareRef() {
-            const l = document.getElementById('reflink').value;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(l)}&text=انضم وابدأ جمع عملة MTM!`);
-        }
+function handleTap() {
+    if(energy >= tapP) {
+        energy -= tapP; score += tapP;
+        db.ref('users/'+uid).update({score: score, username: uname});
+    }
+}
 
-        updateLeaderboard();
-    </script>
+function upgrade(t) {
+    let c = (t==='tap') ? tapP*2000 : Math.pow(2,energyL)*5000;
+    if(score>=c) {
+        score-=c; if(t==='tap') tapP++; else energyL++;
+        db.ref('users/'+uid).update({score, tapP, energyL});
+    }
+}
+
+function doTask(t,r,l) {
+    window.open(l,'_blank');
+    setTimeout(() => { if(!tasks[t]) { score+=r; tasks[t]=true; db.ref('users/'+uid).update({score, tasks}); } }, 5000);
+}
+
+function shareRef() {
+    const l = `https://t.me/MTM_Coin_App_bot?start=${uid}`;
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(l)}&text=Join MTM!`);
+}
+
+function showP(id,el) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById(id).classList.add('active'); el.classList.add('active');
+}
+
+setInterval(() => { if(energy < maxE) { energy=Math.min(maxE, energy+2); updateUI(); } }, 1500);
+init();
+</script>
 </body>
 </html>
