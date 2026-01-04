@@ -12,7 +12,9 @@
         :root { --gold: linear-gradient(135deg, #ffcc00, #ff9900); --bg: #050508; --card: #121220; --accent: #ffcc00; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; direction: rtl; }
         
+        /* Language Start Screen */
         #lang-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        
         .header { padding: 15px; background: var(--card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
         .content { height: 75vh; overflow-y: auto; padding-bottom: 80px; }
         
@@ -36,29 +38,33 @@
         .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; border: 1px solid #222; }
         .card-info { flex-grow: 1; margin: 0 15px; }
         .btn-action { background: var(--gold); color: black; border: none; padding: 10px 18px; border-radius: 12px; font-weight: bold; }
-        .btn-action:disabled { background: #333; color: #777; }
         
         .energy-status { width: 80%; height: 10px; background: #1a1a2a; border-radius: 10px; margin: 15px auto; overflow: hidden; }
         #energy-fill { height: 100%; background: var(--gold); width: 100%; transition: width 0.3s; }
+
+        /* Settings Icon */
+        #lang-btn { position: absolute; top: 15px; left: 15px; font-size: 20px; color: gold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="lang-overlay">
     <h1 style="color:gold; letter-spacing: 2px;">MTM COIN</h1>
+    <p>Choose Language / اختر اللغة</p>
     <button class="btn-action" style="width:200px" onclick="setLanguage('ar')">العربية</button>
     <button class="btn-action" style="width:200px" onclick="setLanguage('en')">English</button>
 </div>
 
 <div class="header">
-    <div id="u-id" style="font-size: 10px; color: #777;">ID: ...</div>
+    <i class="fas fa-language" id="lang-btn" onclick="showLangOverlay()"></i>
     <div id="u-name" style="font-weight: bold; color: gold;">MTM Player</div>
+    <div id="u-id" style="font-size: 10px; color: #777;">ID: ...</div>
 </div>
 
 <div class="content">
     <div id="page-tap" class="page active">
         <div id="balance-container">
-            <small id="txt-balance-label" style="color:#777">إجمالي الرصيد</small>
+            <small id="txt-balance-label">إجمالي الرصيد</small>
             <div id="balance">0</div>
         </div>
         <div class="coin-wrapper">
@@ -83,7 +89,7 @@
             <button class="btn-action" id="btn-up-energy" onclick="buyBooster('energy')">1000</button>
         </div>
     </div>
-
+    
     <div id="page-task" class="page">
         <h2 id="txt-task-head">المهام 🚀</h2>
         <div class="card">
@@ -127,20 +133,26 @@ const db = firebase.database();
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// بيانات المستخدم الافتراضية
-const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "777";
+// تعريف المتغيرات الأساسية
+const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "test_user";
 const userName = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "Player";
 let data = { score: 0, energy: 1000, maxE: 1000, tap: 1, upT: 0, upE: 0, tasks: {tg: false} };
+let isDataLoaded = false; // قفل لمنع الحفظ قبل التحميل
 
 const dictionary = {
-    ar: { bLabel:"إجمالي الرصيد", bHead:"التطويرات", mtap:"قوة النقرة", elimit:"سعة الطاقة", tHead:"المهام", rHead:"المتصدرون", fHead:"الأصدقاء", fDesc:"احصل على 50,000 عن كل إحالة", n1:"تعدين", n2:"تطوير", n3:"مهام", n4:"ترتيب", n5:"إحالة", done:"مكتمل" },
-    en: { bLabel:"Total Balance", bHead:"Upgrades", mtap:"Multitap", elimit:"Energy Limit", tHead:"Tasks", rHead:"Leaderboard", fHead:"Friends", fDesc:"Get 50,000 per referral", n1:"Tap", n2:"Boost", n3:"Tasks", n4:"Rank", n5:"Ref", done:"Done" }
+    ar: { bLabel:"إجمالي الرصيد", bHead:"التطويرات", mtap:"قوة النقرة", elimit:"سعة الطاقة", tHead:"المهام", rHead:"المتصدرون", fHead:"الأصدقاء", fDesc:"احصل على 50,000 عن كل إحالة", n1:"تعدين", n2:"تطوير", n3:"مهام", n4:"ترتيب", n5:"إحالة", done:"مكتمل", copied:"تم النسخ!" },
+    en: { bLabel:"Total Balance", bHead:"Upgrades", mtap:"Multitap", elimit:"Energy Limit", tHead:"Tasks", rHead:"Leaderboard", fHead:"Friends", fDesc:"Get 50,000 per referral", n1:"Tap", n2:"Boost", n3:"Tasks", n4:"Rank", n5:"Ref", done:"Done", copied:"Link Copied!" }
 };
 
+// تحميل اللغة المفضلة
 let currentLang = localStorage.getItem('lang');
-if(currentLang) { 
+if (currentLang) {
     document.getElementById('lang-overlay').style.display = 'none';
     applyTexts();
+}
+
+function showLangOverlay() {
+    document.getElementById('lang-overlay').style.display = 'flex';
 }
 
 function setLanguage(l) {
@@ -161,16 +173,35 @@ function applyTexts() {
     document.getElementById('txt-rank-head').innerText = l.rHead;
     document.getElementById('txt-ref-head').innerText = l.fHead;
     document.getElementById('txt-ref-desc').innerText = l.fDesc;
-    document.getElementById('n-tap').innerText = l.n1; document.getElementById('n-boost').innerText = l.n2;
-    document.getElementById('n-task').innerText = l.n3; document.getElementById('n-rank').innerText = l.n4;
+    document.getElementById('n-tap').innerText = l.n1; 
+    document.getElementById('n-boost').innerText = l.n2;
+    document.getElementById('n-task').innerText = l.n3; 
+    document.getElementById('n-rank').innerText = l.n4;
     document.getElementById('n-ref').innerText = l.n5;
     updateView();
 }
 
+// جلب البيانات من Firebase (الأهم لحل مشكلة التصفير)
+db.ref('users/' + userId).once('value').then((snapshot) => {
+    if (snapshot.exists()) {
+        const cloudData = snapshot.val();
+        data = { ...data, ...cloudData }; // دمج البيانات القادمة من السيرفر
+    } else {
+        // إذا كان مستخدم جديد، نقوم بإنشاء سجل له
+        saveData();
+    }
+    isDataLoaded = true; // الآن يمكننا تفعيل الحفظ
+    updateView();
+    if(currentLang) applyTexts();
+}).catch(err => {
+    console.error("خطأ في التحميل:", err);
+    isDataLoaded = true; // نفتح القفل حتى لو فشل لجعل اللعبة قابلة للعب
+});
+
 function updateView() {
     document.getElementById('balance').innerText = Math.floor(data.score).toLocaleString();
     document.getElementById('energy-val').innerText = `${Math.floor(data.energy)}/${data.maxE}`;
-    document.getElementById('energy-fill').style.width = (data.energy/data.maxE*100) + "%";
+    document.getElementById('energy-fill').style.width = (data.energy / data.maxE * 100) + "%";
     document.getElementById('u-id').innerText = "ID: " + userId;
     document.getElementById('u-name').innerText = userName;
     document.getElementById('lv-tap').innerText = "Level " + (data.upT + 1);
@@ -178,56 +209,68 @@ function updateView() {
     document.getElementById('btn-up-tap').innerText = (500 * (data.upT + 1));
     document.getElementById('btn-up-energy').innerText = (1000 * (data.upE + 1));
     document.getElementById('ref-link-field').value = `https://t.me/MTM_Coin_App_Bot?start=${userId}`;
+    
     if(data.tasks && data.tasks.tg) { 
         document.getElementById('btn-task-tg').innerText = dictionary[currentLang||'ar'].done;
         document.getElementById('btn-task-tg').disabled = true;
     }
 }
 
-// دالة الحفظ - نستخدم update لضمان عدم مسح البيانات
-function save() { 
-    db.ref('users/' + userId).update({ 
-        score: data.score, 
+function saveData() {
+    if (!isDataLoaded) return; // منع الحفظ فوق البيانات الحقيقية قبل تحميلها
+    db.ref('users/' + userId).update({
+        score: data.score,
         energy: data.energy,
         maxE: data.maxE,
         tap: data.tap,
         upT: data.upT,
         upE: data.upE,
         tasks: data.tasks,
-        name: userName,
-        lastSeen: Date.now()
-    }); 
+        name: userName
+    });
 }
 
-// تحميل البيانات عند الدخول
-db.ref('users/' + userId).once('value', s => {
-    if(s.exists()) {
-        data = { ...data, ...s.val() };
-    } else {
-        save();
-    }
-    updateView();
-    if(currentLang) applyTexts();
-});
-
 function handleTap(e) {
-    if(data.energy < data.tap) return;
+    if (!isDataLoaded || data.energy < data.tap) return;
+    
     data.score += data.tap;
     data.energy -= data.tap;
-    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
     
+    // إظهار الرقم العائم
+    let x = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+    let y = e.clientY || (e.touches ? e.touches[0].clientY : 0);
     let pop = document.createElement('div');
     pop.className = 'tap-pop';
     pop.innerText = "+" + data.tap;
-    pop.style.left = (e.clientX || e.touches[0].clientX) + "px";
-    pop.style.top = (e.clientY || e.touches[0].clientY) + "px";
+    pop.style.left = x + "px";
+    pop.style.top = y + "px";
     document.body.appendChild(pop);
     setTimeout(() => pop.remove(), 700);
+
+    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
     updateView();
 }
 
-// حفظ البيانات كل 5 ثوانٍ تلقائياً كاحتياط
-setInterval(save, 5000);
+// حفظ البيانات كل 5 ثوانٍ تلقائياً
+setInterval(() => {
+    if (isDataLoaded) saveData();
+}, 5000);
+
+// استعادة الطاقة كل ثانية
+setInterval(() => {
+    if (isDataLoaded && data.energy < data.maxE) {
+        data.energy = Math.min(data.maxE, data.energy + 1.5);
+        updateView();
+    }
+}, 1000);
+
+// وظائف التنقل والشراء (كما في الكود السابق)
+function nav(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+}
 
 function buyBooster(type) {
     let cost = (type === 'tap') ? 500*(data.upT+1) : 1000*(data.upE+1);
@@ -236,8 +279,15 @@ function buyBooster(type) {
         if(type === 'tap') { data.tap++; data.upT++; }
         else { data.maxE += 500; data.upE++; data.energy = data.maxE; }
         updateView(); 
-        save();
+        saveData();
     }
+}
+
+function copyRef() {
+    const f = document.getElementById('ref-link-field');
+    f.select();
+    navigator.clipboard.writeText(f.value);
+    tg.showAlert(dictionary[currentLang||'ar'].copied);
 }
 
 function loadRanking() {
@@ -251,44 +301,6 @@ function loadRanking() {
         });
     });
 }
-
-function completeTask(t, r, l) {
-    tg.openLink(l);
-    setTimeout(() => { 
-        if(!data.tasks[t]) { 
-            data.score += r; 
-            if(!data.tasks) data.tasks = {};
-            data.tasks[t] = true; 
-            updateView(); 
-            save(); 
-        } 
-    }, 4000);
-}
-
-function nav(id, el) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    el.classList.add('active');
-}
-
-function copyRef() {
-    const f = document.getElementById('ref-link-field');
-    f.select();
-    navigator.clipboard.writeText(f.value);
-    tg.showAlert("تم نسخ الرابط!");
-}
-
-// استعادة الطاقة
-setInterval(() => { 
-    if(data.energy < data.maxE) { 
-        data.energy = Math.min(data.maxE, data.energy + 1.5); 
-        updateView(); 
-    } 
-}, 1000);
-
-// حفظ نهائي عند إغلاق التطبيق إذا كان مدعوماً
-window.addEventListener('beforeunload', save);
 </script>
 </body>
 </html>
