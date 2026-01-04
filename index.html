@@ -12,14 +12,10 @@
         :root { --gold: linear-gradient(135deg, #ffcc00, #ff9900); --bg: #050508; --card: #121220; --accent: #ffcc00; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; direction: rtl; }
         
-        /* Language Start Screen */
         #lang-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-        
-        /* Layout */
         .header { padding: 15px; background: var(--card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
         .content { height: 75vh; overflow-y: auto; padding-bottom: 80px; }
         
-        /* Balance & Coin */
         #balance-container { text-align: center; padding: 25px 0; }
         #balance { font-size: 42px; font-weight: 900; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .coin-wrapper { position: relative; display: flex; justify-content: center; align-items: center; height: 220px; }
@@ -28,18 +24,15 @@
         .tap-pop { position: absolute; color: gold; font-size: 26px; font-weight: bold; pointer-events: none; animation: float 0.7s forwards; }
         @keyframes float { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
 
-        /* Navigation */
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: #0a0a15; display: flex; border-top: 1px solid #333; padding: 12px 0; z-index: 900; }
         .nav-item { flex: 1; text-align: center; color: #555; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 20px; margin-bottom: 3px; }
 
-        /* Global Pages */
         .page { display: none; padding: 20px; animation: fadeIn 0.4s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Cards & Lists */
         .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; border: 1px solid #222; }
         .card-info { flex-grow: 1; margin: 0 15px; }
         .btn-action { background: var(--gold); color: black; border: none; padding: 10px 18px; border-radius: 12px; font-weight: bold; }
@@ -125,13 +118,16 @@
 
 <script>
 // إعدادات Firebase
-const firebaseConfig = { apiKey: "AIzaSyA1Nnh0P7RdWH7EhBnaGkk6QUNeWRXPKt8", databaseURL: "https://mtm-coin-a52d9-default-rtdb.firebaseio.com" };
+const firebaseConfig = { 
+    apiKey: "AIzaSyA1Nnh0P7RdWH7EhBnaGkk6QUNeWRXPKt8", 
+    databaseURL: "https://mtm-coin-a52d9-default-rtdb.firebaseio.com" 
+};
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// بيانات المستخدم
+// بيانات المستخدم الافتراضية
 const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "777";
 const userName = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "Player";
 let data = { score: 0, energy: 1000, maxE: 1000, tap: 1, upT: 0, upE: 0, tasks: {tg: false} };
@@ -142,7 +138,10 @@ const dictionary = {
 };
 
 let currentLang = localStorage.getItem('lang');
-if(currentLang) { document.getElementById('lang-overlay').style.display = 'none'; }
+if(currentLang) { 
+    document.getElementById('lang-overlay').style.display = 'none';
+    applyTexts();
+}
 
 function setLanguage(l) {
     currentLang = l;
@@ -179,11 +178,37 @@ function updateView() {
     document.getElementById('btn-up-tap').innerText = (500 * (data.upT + 1));
     document.getElementById('btn-up-energy').innerText = (1000 * (data.upE + 1));
     document.getElementById('ref-link-field').value = `https://t.me/MTM_Coin_App_Bot?start=${userId}`;
-    if(data.tasks.tg) { 
+    if(data.tasks && data.tasks.tg) { 
         document.getElementById('btn-task-tg').innerText = dictionary[currentLang||'ar'].done;
         document.getElementById('btn-task-tg').disabled = true;
     }
 }
+
+// دالة الحفظ - نستخدم update لضمان عدم مسح البيانات
+function save() { 
+    db.ref('users/' + userId).update({ 
+        score: data.score, 
+        energy: data.energy,
+        maxE: data.maxE,
+        tap: data.tap,
+        upT: data.upT,
+        upE: data.upE,
+        tasks: data.tasks,
+        name: userName,
+        lastSeen: Date.now()
+    }); 
+}
+
+// تحميل البيانات عند الدخول
+db.ref('users/' + userId).once('value', s => {
+    if(s.exists()) {
+        data = { ...data, ...s.val() };
+    } else {
+        save();
+    }
+    updateView();
+    if(currentLang) applyTexts();
+});
 
 function handleTap(e) {
     if(data.energy < data.tap) return;
@@ -194,13 +219,15 @@ function handleTap(e) {
     let pop = document.createElement('div');
     pop.className = 'tap-pop';
     pop.innerText = "+" + data.tap;
-    pop.style.left = e.clientX + "px";
-    pop.style.top = e.clientY + "px";
+    pop.style.left = (e.clientX || e.touches[0].clientX) + "px";
+    pop.style.top = (e.clientY || e.touches[0].clientY) + "px";
     document.body.appendChild(pop);
     setTimeout(() => pop.remove(), 700);
     updateView();
-    save();
 }
+
+// حفظ البيانات كل 5 ثوانٍ تلقائياً كاحتياط
+setInterval(save, 5000);
 
 function buyBooster(type) {
     let cost = (type === 'tap') ? 500*(data.upT+1) : 1000*(data.upE+1);
@@ -208,7 +235,8 @@ function buyBooster(type) {
         data.score -= cost;
         if(type === 'tap') { data.tap++; data.upT++; }
         else { data.maxE += 500; data.upE++; data.energy = data.maxE; }
-        updateView(); save();
+        updateView(); 
+        save();
     }
 }
 
@@ -226,7 +254,15 @@ function loadRanking() {
 
 function completeTask(t, r, l) {
     tg.openLink(l);
-    setTimeout(() => { if(!data.tasks[t]) { data.score += r; data.tasks[t] = true; updateView(); save(); } }, 4000);
+    setTimeout(() => { 
+        if(!data.tasks[t]) { 
+            data.score += r; 
+            if(!data.tasks) data.tasks = {};
+            data.tasks[t] = true; 
+            updateView(); 
+            save(); 
+        } 
+    }, 4000);
 }
 
 function nav(id, el) {
@@ -243,14 +279,16 @@ function copyRef() {
     tg.showAlert("تم نسخ الرابط!");
 }
 
-function save() { db.ref('users/'+userId).set({ ...data, name: userName }); }
+// استعادة الطاقة
+setInterval(() => { 
+    if(data.energy < data.maxE) { 
+        data.energy = Math.min(data.maxE, data.energy + 1.5); 
+        updateView(); 
+    } 
+}, 1000);
 
-db.ref('users/'+userId).on('value', s => {
-    if(s.val()) { data = { ...data, ...s.val() }; updateView(); } else { save(); }
-    if(currentLang) applyTexts();
-});
-
-setInterval(() => { if(data.energy < data.maxE) { data.energy = Math.min(data.maxE, data.energy+1.5); updateView(); } }, 1000);
+// حفظ نهائي عند إغلاق التطبيق إذا كان مدعوماً
+window.addEventListener('beforeunload', save);
 </script>
 </body>
 </html>
